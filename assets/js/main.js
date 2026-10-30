@@ -129,7 +129,7 @@ function renderYearNavigation(projects) {
   els.yearNavList.innerHTML = REQUIRED_YEARS.map((year) => {
     const allCount = projects.filter((project) => project.year === year).length;
     const featuredCount = projects.filter((project) => project.year === year && project.featured).length;
-    const status = allCount > 0 ? `${allCount} 个项目 · ${featuredCount} 个优秀作品` : "科研实践成果";
+    const status = allCount > 0 ? `${allCount} 个项目 · ${featuredCount} 个优秀作品` : "本学年作品待更新";
     return `
       <a class="year-nav-card" href="#year-${year}" data-scroll-year="${year}">
         <span>${year}学年</span>
@@ -150,21 +150,35 @@ function renderYearSections(projects) {
 
     section.hidden = state.filters.year !== "all" && state.filters.year !== String(year);
     count.textContent = yearProjects.length > 0 ? `${yearProjects.length} 个项目` : "科研实践成果";
-    featuredGrid.innerHTML = renderProjectList(featuredProjects, "科研实践成果");
-    allGrid.innerHTML = renderProjectList(yearProjects, "科研实践成果");
+    featuredGrid.innerHTML = renderProjectList(featuredProjects, "本学年暂无优秀作品");
+    allGrid.innerHTML = renderProjectList(yearProjects, "本学年作品待更新。", 6);
   });
 }
 
-function renderProjectList(projects, emptyText) {
+function renderProjectList(projects, emptyText, visibleLimit = 0) {
   if (projects.length === 0) {
     return `
       <div class="empty-state">
-        <strong>本学年科研实践成果</strong>
-        <span>${escapeHtml(emptyText)}</span>
+        <strong>${escapeHtml(emptyText)}</strong>
       </div>
     `;
   }
-  return projects.map((project) => projectCard(project)).join("");
+
+  if (!visibleLimit || projects.length <= visibleLimit) {
+    return projects.map((project) => projectCard(project)).join("");
+  }
+
+  const visibleProjects = projects.slice(0, visibleLimit);
+  const hiddenProjects = projects.slice(visibleLimit);
+  return `
+    ${visibleProjects.map((project) => projectCard(project)).join("")}
+    <details class="more-works">
+      <summary>展开其余 ${hiddenProjects.length} 个作品</summary>
+      <div class="work-grid work-grid-more">
+        ${hiddenProjects.map((project) => projectCard(project)).join("")}
+      </div>
+    </details>
+  `;
 }
 
 function getFilteredProjects() {

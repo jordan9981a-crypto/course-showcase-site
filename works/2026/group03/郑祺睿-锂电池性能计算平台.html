@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锂电池性能指标计算与分析平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f0f5fa;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #205799;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4080c8;
+        }
+        h2 {
+            color: #205799;
+            margin: 25px 0 15px;
+            font-size: 20px;
+        }
+        h3 {
+            margin: 15px 0 10px;
+            color: #444;
+        }
+        p {
+            margin-bottom: 10px;
+            text-indent: 2em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #4080c8;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .calc-box {
+            background: #f7f9fc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .form-item {
+            margin: 12px 0;
+        }
+        label {
+            display: inline-block;
+            width: 180px;
+            font-weight: 500;
+        }
+        input {
+            padding: 8px 10px;
+            width: 220px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 9px 20px;
+            background-color: #205799;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #184477;
+        }
+        .result {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #d9480f;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            input {
+                width: 100%;
+            }
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 6px 3px;
+            }
+        }
+        .compare-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .compare-card {
+            flex: 1;
+            min-width: 220px;
+            background: #f7f9fc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4080c8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>锂电池性能指标计算与分析平台</h1>
+
+        <h2>一、四大核心性能指标理论定义</h2>
+        <h3>1. 理论比容量 (Theoretical Specific Capacity)</h3>
+        <p>指单位质量（或单位体积）的电极活性物质在理想情况下，所能释放出的最大电量。它是基于法拉第定律，通过活性物质的摩尔质量和其在电化学反应中转移的电子数量计算得出的理论最大值。物理意义是衡量电极材料本身储能潜力的最根本指标，代表了材料在100%利用率下的极限容量。</p>
+        
+        <h3>2. 平均工作电压 (Average Operating Voltage)</h3>
+        <p>电池在特定放电制度下（如恒流放电），整个放电过程中电压的积分平均值。其计算公式为：U<sub>aver</sub> = ∫U(t)*I(t)dt / ∫I(t)dt。物理意义是决定了电池输出能量的“质量”，直接影响电池的能量密度。在容量相同的情况下，平均工作电压越高的电池，其输出的总能量也越高。</p>
+
+        <h3>3. 能量密度 (Energy Density)</h3>
+        <p>又称“比能量”，指单位质量（质量能量密度，Wh/kg）或单位体积（体积能量密度，Wh/L）的电池所能存储并输出的总能量。其计算公式为：能量密度 = 电池容量 × 平均工作电压 / 电池质量 (或体积)。物理意义是衡量电池综合性能的核心指标，直接关系到用电设备的续航能力。</p>
+
+        <h3>4. 功率密度 (Power Density)</h3>
+        <p>又称“比功率”，指单位质量（W/kg）或单位体积（W/L）的电池在单位时间内所能输出的能量，即功率。其计算公式为：功率密度 = (电压 × 电流) / 电池质量 (或体积)。物理意义是反映了电池的充放电速度能力，高功率密度意味着电池可以快速地输出或吸收能量。</p>
+
+        <h2>二、主流锂电正负极材料参数库</h2>
+        <table>
+            <tr>
+                <th>材料名称</th>
+                <th>理论比容量(mAh/g)</th>
+                <th>平均工作电压(V)</th>
+                <th>材料优缺点</th>
+                <th>适用场景</th>
+            </tr>
+            <tr>
+                <td>LFP 磷酸铁锂</td>
+                <td>170</td>
+                <td>3.2</td>
+                <td><strong>优点:</strong> 安全性高、循环寿命长、成本低。<br><strong>缺点:</strong> 电压与比容量偏低。</td>
+                <td>乘用车动力电池、储能电池</td>
+            </tr>
+            <tr>
+                <td>NCM622 三元材料</td>
+                <td>185</td>
+                <td>3.65</td>
+                <td><strong>优点:</strong> 能量密度均衡、综合性能优。<br><strong>缺点:</strong> 安全性弱于铁锂。</td>
+                <td>中高端新能源汽车、电动工具</td>
+            </tr>
+            <tr>
+                <td>NCM811 三元材料</td>
+                <td>200</td>
+                <td>3.7</td>
+                <td><strong>优点:</strong> 高比容量、高能量密度。<br><strong>缺点:</strong> 热稳定性差、循环一般。</td>
+                <td>高端乘用车、长续航动力电池</td>
+            </tr>
+            <tr>
+                <td>LCO 钴酸锂</td>
+                <td>274</td>
+                <td>3.8</td>
+                <td><strong>优点:</strong> 电压高、倍率性能好。<br><strong>缺点:</strong> 钴资源稀缺、成本高、安全性一般。</td>
+                <td>手机、笔记本等数码锂电池</td>
+            </tr>
+            <tr>
+                <td>人造石墨</td>
+                <td>372</td>
+                <td>0.1</td>
+                <td><strong>优点:</strong> 倍率性能优、循环稳定、快充适配性强。<br><strong>缺点:</strong> 成本略高。</td>
+                <td>快充电池、动力电池、数码电池</td>
+            </tr>
+            <tr>
+                <td>天然石墨</td>
+                <td>372</td>
+                <td>0.1</td>
+                <td><strong>优点:</strong> 比容量发挥好、成本低。<br><strong>缺点:</strong> 倍率与低温性能较差。</td>
+                <td>常规数码电池、低速电动车</td>
+            </tr>
+            <tr>
+                <td>硅碳负极</td>
+                <td>600~1200</td>
+                <td>0.08</td>
+                <td><strong>优点:</strong> 超高比容量，大幅提升能量密度。<br><strong>缺点:</strong> 体积膨胀大、循环偏弱。</td>
+                <td>高端数码、高续航动力电池</td>
+            </tr>
+        </table>
+
+        <h2>三、电极材料理论比容量计算（法拉第定律）</h2>
+        <div class="calc-box">
+            <p><strong>计算公式：</strong> <i>C</i><sub>theory</sub> = (n × F) / (M × 3.6)
+                <br>符号说明：n=电极反应中每摩尔活性物质转移的电子的量(mol)，F=法拉第常数(96500 C/mol)，M=活性物质的摩尔质量(g/mol)，<i>C</i><sub>theory</sub>=理论比容量(mAh/g)</p>
+            <div class="form-item">
+                <label>电子转移数 n：</label>
+                <input type="number" id="electron" placeholder="1">
+            </div>
+            <div class="form-item">
+                <label>材料摩尔质量 M (g/mol)：</label>
+                <input type="number" id="molMass" placeholder="93.76">
+            </div>
+            <button onclick="calcCapacity()">开始计算</button>
+            <div class="result" id="capResult"></div>
+        </div>
+
+        <h2>四、电池能量密度计算</h2>
+        <div class="calc-box">
+            <p><strong>质量能量密度公式：</strong> <i>E</i><sub>m</sub> = (C × <i>U</i><sub>avg</sub>) / <i>m</i><sub>battery</sub>  （单位：Wh/kg）
+            <br>拓展：体积能量密度 <i>E</i><sub>v</sub> = (C × <i>U</i><sub>avg</sub>) / <i>V</i><sub>battery</sub> （单位：Wh/L）</p>
+            <div class="form-item">
+                <label>电池实际容量 C (Ah)：</label>
+                <input type="number" id="batCap" placeholder="100">
+            </div>
+            <div class="form-item">
+                <label>平均工作电压 <i>U</i><sub>avg</sub> (V)：</label>
+                <input type="number" id="batVolt" placeholder="3.2">
+            </div>
+            <div class="form-item">
+                <label>电池总质量 <i>m</i><sub>battery</sub> (kg)：</label>
+                <input type="number" id="batMassEnergy" placeholder="200">
+            </div>
+            <div class="form-item">
+                <label>电池总体积 <i>V</i><sub>battery</sub> (L)【选填】：</label>
+                <input type="number" id="batVolume" placeholder="拓展计算用">
+            </div>
+            <button onclick="calcEnergy()">开始计算</button>
+            <div class="result" id="energyResult"></div>
+        </div>
+
+        <h2>五、电池功率密度计算</h2>
+        <div class="calc-box">
+            <p><strong>质量功率密度公式：</strong> <i>P</i><sub>m</sub> = (U × I) / <i>m</i><sub>battery</sub> （单位：W/kg）
+            <br>拓展：体积功率密度 <i>P</i><sub>v</sub> = (U × I) / <i>V</i><sub>battery</sub> （单位：W/L）</p>
+            <div class="form-item">
+                <label>瞬时工作电压 U (V)：</label>
+                <input type="number" id="powerVolt" placeholder="3.2">
+            </div>
+            <div class="form-item">
+                <label>瞬时工作电流 I (A)：</label>
+                <input type="number" id="powerCurrent" placeholder="50">
+            </div>
+            <div class="form-item">
+                <label>电池总质量 <i>m</i><sub>battery</sub> (kg)：</label>
+                <input type="number" id="batMassPower" placeholder="200">
+            </div>
+            <div class="form-item">
+                <label>电池总体积 <i>V</i><sub>battery</sub> (L)【选填】：</label>
+                <input type="number" id="powerVolume" placeholder="拓展计算用">
+            </div>
+            <button onclick="calcPower()">开始计算</button>
+            <div class="result" id="powerResult"></div>
+        </div>
+
+        <h2>六、常用材料参数一键填充</h2>
+        <div class="calc-box">
+            <p>点击按钮自动填充对应材料参数，用于理论比容量计算</p>
+            <button onclick="fillLFP()">填充 LFP 磷酸铁锂</button>
+            <button onclick="fillNCM811()">填充 NCM811</button>
+            <button onclick="fillGraphite()">填充 人造石墨</button>
+            <button onclick="fillSiC()">填充 硅碳负极</button>
+        </div>
+
+        <h2>七、不同场景电池性能匹配与材料选型原则</h2>
+        <h3>1. 动力电池（新能源汽车）</h3>
+        <p>兼顾高安全、长循环、适中能量密度。主流选用LFP或NCM三元正极搭配人造石墨负极；追求长续航选用NCM811+硅碳体系，追求极致安全与低成本优先LFP体系。</p>
+        
+        <h3>2. 数码电池（手机/笔记本）</h3>
+        <p>优先高能量密度、高电压。主流选用LCO钴酸锂正极，搭配硅碳负极进一步提升续航，对功率密度要求适中。</p>
+
+        <h3>3. 快充电池</h3>
+        <p>要求高功率密度、优异倍率性能。正极优先NCM三元，负极必须选用人造石墨，配合电解液体系优化，禁止大量使用硅碳材料（膨胀影响快充循环）。</p>
+
+        <h2>八、主流电池体系性能对比分析</h2>
+        <div class="compare-box">
+            <div class="compare-card">
+                <h3>LFP铁锂体系</h3>
+                <p>优势：安全、长寿、低成本</p>
+                <p>短板：能量密度偏低</p>
+                <p>定位：储能、商用车、家用车</p>
+            </div>
+            <div class="compare-card">
+                <h3>NCM三元体系</h3>
+                <p>优势：能量密度高、倍率好</p>
+                <p>短板：安全性一般、成本偏高</p>
+                <p>定位：高端乘用车、电动工具</p>
+            </div>
+            <div class="compare-card">
+                <h3>石墨负极体系</h3>
+                <p>优势：循环稳定、工艺成熟</p>
+                <p>短板：理论容量上限固定</p>
+                <p>定位：全品类通用</p>
+            </div>
+            <div class="compare-card">
+                <h3>硅碳负极体系</h3>
+                <p>优势：超高比容量</p>
+                <p>短板：膨胀大、循环差</p>
+                <p>定位：高端高续航产品</p>
+            </div>
+        </div>
+
+        <h2>九、计算结果误差说明</h2>
+        <p>本平台所有计算结果均为<strong>理论极限值</strong>。实际电池受电极工艺、电解液、极化、副反应、充放电倍率影响，实际比容量、能量密度通常为理论值的 80%~95%；大倍率放电下功率密度偏差会进一步增大。选型与设计时需预留冗余参数。</p>
+    </div>
+
+    <script>
+        const F = 96500;
+
+        function calcCapacity(){
+            let n = parseFloat(document.getElementById('electron').value);
+            let M = parseFloat(document.getElementById('molMass').value);
+            if(isNaN(n) || isNaN(M) || M <= 0){
+                document.getElementById('capResult').innerText = "请输入正确数字！";
+                return;
+            }
+            let cap = (n * F) / (3.6 * M);
+            cap = cap.toFixed(2);
+            document.getElementById('capResult').innerText = `理论比容量：${cap} mAh/g`;
+        }
+
+        function calcEnergy(){
+            let C = parseFloat(document.getElementById('batCap').value);
+            let U_avg = parseFloat(document.getElementById('batVolt').value);
+            let m_battery = parseFloat(document.getElementById('batMassEnergy').value);
+            let V_battery = parseFloat(document.getElementById('batVolume').value);
+            
+            if(isNaN(C) || isNaN(U_avg) || isNaN(m_battery) || m_battery <= 0){
+                document.getElementById('energyResult').innerText = "请输入正确的容量、电压和质量！";
+                return;
+            }
+            let eMass = (C * U_avg) / m_battery;
+            eMass = eMass.toFixed(2);
+            let res = `质量能量密度：${eMass} Wh/kg`;
+            if(!isNaN(V_battery) && V_battery > 0){
+                let eVol = (C * U_avg) / V_battery;
+                eVol = eVol.toFixed(2);
+                res += ` ，体积能量密度：${eVol} Wh/L`;
+            }
+            document.getElementById('energyResult').innerText = res;
+        }
+
+        function calcPower(){
+            let U = parseFloat(document.getElementById('powerVolt').value);
+            let I = parseFloat(document.getElementById('powerCurrent').value);
+            let m_battery = parseFloat(document.getElementById('batMassPower').value);
+            let V_battery = parseFloat(document.getElementById('powerVolume').value);
+            
+            if(isNaN(U) || isNaN(I) || isNaN(m_battery) || m_battery <= 0){
+                document.getElementById('powerResult').innerText = "请输入正确的电压、电流和质量！";
+                return;
+            }
+            let pMass = (U * I) / m_battery;
+            pMass = pMass.toFixed(2);
+            let res = `质量功率密度：${pMass} W/kg`;
+            if(!isNaN(V_battery) && V_battery > 0){
+                let pVol = (U * I) / V_battery;
+                pVol = pVol.toFixed(2);
+                res += ` ，体积功率密度：${pVol} W/L`;
+            }
+            document.getElementById('powerResult').innerText = res;
+        }
+
+        function fillLFP(){
+            document.getElementById('electron').value = 1;
+            document.getElementById('molMass').value = 93.76;
+        }
+        function fillNCM811(){
+            document.getElementById('electron').value = 1;
+            document.getElementById('molMass').value = 96;
+        }
+        function fillGraphite(){
+            document.getElementById('electron').value = 1;
+            document.getElementById('molMass').value = 12;
+        }
+        function fillSiC(){
+            document.getElementById('electron').value = 4;
+            document.getElementById('molMass').value = 28;
+        }
+    </script>
+</body>
+</html>

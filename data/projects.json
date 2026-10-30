@@ -3,7 +3,7 @@
     "name": "全电技术 / 储能电池技术",
     "siteTitle": "全电技术课程 AI 实践成果展示平台",
     "subtitle": "储能电池技术学生网站作品展 · 按学年归档",
-    "updated": "2026-06-14"
+    "updated": "2026-06-15"
   },
   "projects": [
     {
@@ -95,6 +95,71 @@
       "url": "works/2026/group02/锂离子电池性能指标设计平台(2).html",
       "cover": "assets/covers/2026-group02-work05.png",
       "category": "电池材料",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group03",
+      "title": "锂电池性能指标计算与分析平台",
+      "members": ["郑祺睿（220221021130）"],
+      "keywords": ["锂离子电池", "性能指标", "容量", "能量密度", "功率密度"],
+      "description": "围绕理论比容量、平均工作电压、能量密度和功率密度等核心指标开展的学生网站作品。",
+      "date": "2026-06-15",
+      "url": "works/2026/group03/郑祺睿-锂电池性能计算平台.html",
+      "cover": "assets/covers/2026-group03.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group04",
+      "title": "锂离子电池性能指标计算与分析平台",
+      "members": ["符馨月（220231020904）"],
+      "keywords": ["锂离子电池", "性能指标", "计算分析", "材料数据库", "可视化"],
+      "description": "围绕锂离子电池理论指标、材料参数、性能计算和可视化展示完成的学生网站作品。",
+      "date": "2026-06-15",
+      "url": "works/2026/group04/符馨月-第八组网页设计.html",
+      "cover": "assets/covers/2026-group04.png",
+      "category": "锂离子电池",
+      "featured": true
+    },
+    {
+      "year": 2026,
+      "group": "group05",
+      "title": "锂离子电池性能指标网站设计",
+      "members": ["戈泽潮（220231020905）"],
+      "keywords": ["锂离子电池", "性能指标", "网站设计", "储能电池"],
+      "description": "以锂离子电池性能指标为主题的学生网站设计作品，包含指标介绍和学习内容。",
+      "date": "2026-06-15",
+      "url": "works/2026/group05/戈泽潮-锂离子电池性能指标网站设计.html",
+      "cover": "assets/covers/2026-group05.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group06",
+      "title": "锂离子电池性能指标设计平台",
+      "members": ["孙宥琛（220231020917）"],
+      "keywords": ["锂离子电池", "性能指标", "材料设计", "性能计算"],
+      "description": "面向锂离子电池性能指标设计与材料参数分析的学生网站作品。",
+      "date": "2026-06-15",
+      "url": "works/2026/group06/孙宥琛-锂离子电池性能指标设计平台.html",
+      "cover": "assets/covers/2026-group06.png",
+      "category": "电池材料",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group07",
+      "title": "锂离子电池性能分析与计算平台",
+      "members": ["宋昕阳（220231021013）"],
+      "keywords": ["锂离子电池", "性能分析", "计算平台", "数据可视化"],
+      "description": "围绕锂离子电池性能分析、指标计算和结果对比完成的学生网站作品。",
+      "date": "2026-06-15",
+      "url": "works/2026/group07/宋昕阳-LIB.html",
+      "cover": "assets/covers/2026-group07.png",
+      "category": "锂离子电池",
       "featured": false
     }
   ]

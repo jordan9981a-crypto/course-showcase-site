@@ -453,6 +453,40 @@ select:focus {
   grid-template-columns: repeat(3, minmax(220px, 1fr));
 }
 
+.more-works {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.more-works summary {
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--navy);
+  cursor: pointer;
+  display: flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 14px;
+}
+
+.more-works summary:hover,
+.more-works summary:focus-visible {
+  border-color: var(--maroon);
+  outline: 3px solid rgba(138, 21, 56, 0.12);
+  outline-offset: 2px;
+}
+
+.more-works[open] summary {
+  margin-bottom: 14px;
+}
+
+.work-grid-more {
+  margin-top: 0;
+}
+
 .work-card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -571,6 +605,45 @@ select:focus {
 .empty-state strong {
   color: var(--navy);
   font-size: 20px;
+}
+
+.research-section {
+  background: #eef3f7;
+  max-width: none;
+}
+
+.research-section > * {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1132px;
+}
+
+.research-placeholder {
+  background: var(--surface);
+  border: 1px dashed #aebdca;
+  border-radius: var(--radius);
+  color: var(--muted);
+  padding: 28px;
+}
+
+.research-placeholder strong,
+.research-placeholder span {
+  display: block;
+}
+
+.research-placeholder strong {
+  color: var(--navy);
+  font-size: 20px;
+}
+
+.research-placeholder p {
+  margin: 6px 0 10px;
+}
+
+.research-placeholder span {
+  color: var(--maroon);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .back-to-top {
