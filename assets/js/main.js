@@ -64,10 +64,14 @@ function uniqueValues(projects, key) {
 
 function sortProjects(projects) {
   return [...projects].sort((a, b) => {
+    const groupOrder = (project) => Number(String(project.group).replace(/\D/g, "")) || 0;
+    if (groupOrder(a) !== groupOrder(b)) {
+      return groupOrder(a) - groupOrder(b);
+    }
     if (b.featured !== a.featured) {
       return Number(b.featured) - Number(a.featured);
     }
-    return String(a.group).localeCompare(String(b.group), "zh-CN", { numeric: true });
+    return String(a.title).localeCompare(String(b.title), "zh-CN");
   });
 }
 
