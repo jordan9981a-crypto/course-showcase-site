@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>锂电池正负极材料比容量与比能量计算器</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f0f6ff;--bg2:#e8f0fe;--s1:#fff;--s2:#f5f9ff;--bd:#c8ddf0;--bd2:#b0c8e8;--tx:#1a2a42;--tx2:#5a7090;--tx3:#8a9ab0;--ac:#2563eb;--ac2:#3b82f6;--ac3:#60a5fa;--acl:#dbeafe;--gn:#059669;--gnl:#d1fae5;--og:#d97706;--ogl:#fef3c7;--rd:#dc2626;--rdl:#fee2e2;--pu:#7c3aed;--pul:#ede9fe;--cy:#0891b2;--cyl:#cffafe;--r:12px;--sh:0 2px 16px rgba(37,99,235,.08);--sh2:0 4px 24px rgba(37,99,235,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.7;min-height:100vh;overflow-x:hidden}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#e0ecff,#f0f6ff 40%,#e8f4fd);padding:44px 20px 32px;text-align:center;border-bottom:1px solid var(--bd);position:relative}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ac3),var(--ac),var(--ac3))}
+.hdr h1{font-size:2rem;font-weight:800;color:var(--ac);margin-bottom:6px;letter-spacing:-.5px}
+.hdr h1 span{color:var(--tx)}
+.hdr p{color:var(--tx2);font-size:.95rem}
+
+/* Nav */
+.nav{display:flex;gap:8px;padding:16px 20px;background:var(--s1);border-bottom:1px solid var(--bd);flex-wrap:nowrap;justify-content:flex-start;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(37,99,235,.06);overflow-x:auto;-webkit-overflow-scrolling:touch;cursor:grab;user-select:none;-webkit-user-select:none;scrollbar-width:none;-ms-overflow-style:none}
+.nav::-webkit-scrollbar{display:none}
+.nav:active{cursor:grabbing}
+.nav.dragging{cursor:grabbing}
+.nb{padding:9px 22px;border:2px solid var(--bd);border-radius:10px;background:var(--s1);color:var(--tx2);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;white-space:nowrap}
+.nb:hover{border-color:var(--ac2);color:var(--ac);background:var(--acl)}
+.nb.on{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 3px 12px rgba(37,99,235,.25)}
+
+/* Main */
+.mn{max-width:1280px;margin:0 auto;padding:28px 20px 60px}
+.md{display:none;animation:fi .35s ease}.md.on{display:block}@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Card */
+.cd{background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--r);padding:24px;margin-bottom:20px;box-shadow:var(--sh);overflow:hidden;word-break:break-word}
+.ct{font-size:1.1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--tx)}
+.ct .ic{font-size:1.2rem}
+.ct .f{font-weight:400;font-size:.78rem;color:var(--tx3);margin-left:auto}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+/* Form */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.78rem;color:var(--tx2);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select{width:100%;padding:10px 14px;background:var(--s2);border:1.5px solid var(--bd);border-radius:8px;color:var(--tx);font-size:.925rem;transition:all .2s;outline:none;font-family:inherit}
+.fg input:focus,.fg select:focus{border-color:var(--ac2);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+.fg select option{background:var(--s1)}
+.ih{font-size:.72rem;color:var(--tx3);margin-top:4px;line-height:1.4}
+
+/* Chips */
+.tc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.ch{padding:6px 15px;border-radius:20px;border:1.5px solid var(--bd);background:var(--s1);color:var(--tx2);font-size:.8rem;cursor:pointer;transition:all .2s;font-weight:500}
+.ch:hover{border-color:var(--ac2);color:var(--ac);background:var(--acl)}
+.ch.on{border-color:var(--ac);background:var(--acl);color:var(--ac);font-weight:600}
+
+/* Buttons */
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.bp{background:var(--ac);color:#fff}.bp:hover{background:#1d4ed8;box-shadow:0 4px 16px rgba(37,99,235,.3)}
+.bs{background:var(--s1);border:1.5px solid var(--bd);color:var(--tx2)}.bs:hover{border-color:var(--ac2);color:var(--ac)}
+.btn-g{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+/* Formula box */
+.fb{background:var(--cyl);border:1.5px solid #a5f3fc;border-radius:10px;padding:16px 20px;margin-bottom:18px;font-size:.84rem;color:#0e7490;line-height:2;word-break:break-word;overflow-wrap:break-word}
+.fb strong{color:#065f73;font-weight:700}
+.fb code{background:rgba(8,145,178,.1);padding:2px 7px;border-radius:4px;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:.82rem;color:#065f73}
+
+/* Symbol legend */
+.sym-legend{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px 18px;margin-top:10px;font-size:.8rem;color:var(--tx2);line-height:2}
+.sym-legend .sym-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sym-legend code{background:rgba(37,99,235,.08);padding:2px 8px;border-radius:4px;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:.8rem;color:var(--ac);font-weight:600;white-space:nowrap}
+
+/* Quick stats */
+.qs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{background:var(--s1);border:1.5px solid var(--bd);border-radius:12px;padding:18px 14px;text-align:center;box-shadow:var(--sh);transition:all .3s}
+.sc:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
+.sc .si{font-size:1.6rem;margin-bottom:6px}
+.sc .sv{font-size:1.1rem;font-weight:700;color:var(--ac);min-height:1.4em}
+.sc .sl{font-size:.7rem;color:var(--tx3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Section desc */
+.sd{color:var(--tx2);font-size:.88rem;margin-bottom:22px;padding:14px 18px;background:var(--acl);border-left:4px solid var(--ac);border-radius:0 10px 10px 0}
+
+/* Result box */
+.rb{background:linear-gradient(135deg,#f0f6ff,#e8f0fe);border:1.5px solid var(--bd2);border-radius:var(--r);padding:22px;margin-top:16px;overflow:hidden}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(37,99,235,.08)}.rr:last-child{border-bottom:none}
+.rl{color:var(--tx2);font-size:.875rem;font-weight:500}
+.rv{font-size:1.1rem;font-weight:700;color:var(--ac)}.rv.g{color:var(--gn)}.rv.o{color:var(--og)}.rv.p{color:var(--pu)}
+
+/* Error */
+.en{background:var(--rdl);border:1.5px solid #fca5a5;border-radius:8px;padding:12px 16px;font-size:.825rem;color:var(--rd);margin-top:12px;display:none}
+
+/* Tables */
+.tw{overflow-x:auto;border-radius:var(--r);border:1.5px solid var(--bd);-webkit-overflow-scrolling:touch;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:0}
+th{background:var(--bg2);padding:11px 13px;text-align:left;font-weight:700;color:var(--ac);border-bottom:2px solid var(--bd);white-space:nowrap;font-size:.76rem;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 13px;border-bottom:1px solid var(--bd);color:var(--tx2)}
+tr:hover td{background:var(--acl)}
+.bd{display:inline-block;padding:2px 9px;border-radius:5px;font-size:.72rem;font-weight:700}
+.bb{background:var(--acl);color:var(--ac)}.bg2{background:var(--gnl);color:var(--gn)}.bo{background:var(--ogl);color:var(--og)}.bp2{background:var(--pul);color:var(--pu)}.bc{background:var(--cyl);color:var(--cy)}.brd{background:var(--rdl);color:var(--rd)}
+
+/* Chart */
+.cht{position:relative;height:400px;margin-top:16px}
+.ctb{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.cta{padding:7px 18px;border-radius:8px;border:1.5px solid var(--bd);background:var(--s1);color:var(--tx2);font-size:.82rem;cursor:pointer;transition:all .2s;font-weight:500}
+.cta.on{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 2px 10px rgba(37,99,235,.2)}
+.cta:hover:not(.on){border-color:var(--ac2);color:var(--ac)}
+
+/* Material grid */
+.mat-grid{display:grid;grid-template-columns:1fr;gap:20px}
+.mat-card{background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--r);padding:20px;box-shadow:var(--sh);overflow:hidden}
+.mat-card h4{font-size:.95rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--tx)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot-c{background:var(--ac)}.dot-a{background:var(--gn)}
+.formula-detail{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px 18px;margin-top:12px;font-size:.82rem;color:var(--tx2);line-height:1.9;word-break:break-word}
+.formula-detail strong{color:var(--ac)}
+
+/* Footer */
+.ft{text-align:center;padding:20px;color:var(--tx3);font-size:.78rem;border-top:1px solid var(--bd);margin-top:40px}
+
+/* Update Log Modal */
+.upd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s ease;pointer-events:none}
+.upd-overlay.show{opacity:1;pointer-events:auto}
+.upd-modal{background:var(--s1);border-radius:20px;width:min(420px,92vw);max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(30px) scale(.96);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.upd-overlay.show .upd-modal{transform:translateY(0) scale(1)}
+.upd-header{background:linear-gradient(135deg,#1e3a5f,#2563eb 50%,#3b82f6);padding:28px 24px 22px;text-align:center;color:#fff;position:relative}
+.upd-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(255,255,255,.15)}
+.upd-icon{font-size:2.2rem;margin-bottom:8px}
+.upd-title{font-size:1.15rem;font-weight:700;letter-spacing:.3px}
+.upd-ver{display:inline-block;margin-top:8px;padding:4px 14px;background:rgba(255,255,255,.18);border-radius:20px;font-size:.78rem;font-weight:600;backdrop-filter:blur(4px)}
+.upd-body{padding:20px 24px 24px;overflow-y:auto;flex:1}
+.upd-section{margin-bottom:18px}
+.upd-section:last-child{margin-bottom:0}
+.upd-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 12px;border-radius:6px;font-size:.72rem;font-weight:700;margin-bottom:10px;letter-spacing:.5px}
+.upd-tag-new{background:var(--gnl);color:var(--gn)}
+.upd-tag-opt{background:var(--acl);color:var(--ac)}
+.upd-item{padding:8px 0;font-size:.84rem;color:var(--tx2);line-height:1.7;display:flex;align-items:flex-start;gap:8px}
+.upd-item::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ac);flex-shrink:0;margin-top:9px}
+.upd-sub{padding-left:16px;font-size:.78rem;color:var(--tx3);line-height:1.8}
+.upd-sub li{list-style:none;padding-left:14px;position:relative}
+.upd-sub li::before{content:'';position:absolute;left:0;top:9px;width:4px;height:4px;border-radius:50%;background:var(--bd2)}
+.upd-btn{width:100%;padding:14px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;border-radius:0 0 20px 20px;letter-spacing:.3px}
+.upd-btn:hover{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
+
+/* Custom input highlight */
+.fg input.custom-active{border-color:var(--ac);background:#fff;box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+
+/* Pack module sub-pages */
+.pk-page{display:none;animation:fi .35s ease}.pk-page.on{display:block}
+
+/* Material pros/cons search */
+.ms-box{margin-top:24px}
+.ms-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.ms-input{flex:1;min-width:200px;padding:11px 16px 11px 40px;background:var(--s1);border:1.5px solid var(--bd);border-radius:10px;font-size:.9rem;color:var(--tx);outline:none;transition:all .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%238a9ab0' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center}
+.ms-input:focus{border-color:var(--ac2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.ms-chips{display:flex;gap:6px;flex-wrap:wrap}
+.ms-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--bd);background:var(--s1);color:var(--tx2);font-size:.78rem;cursor:pointer;transition:all .2s;font-weight:500;white-space:nowrap}
+.ms-chip:hover{border-color:var(--ac2);color:var(--ac);background:var(--acl)}
+.ms-chip.on{border-color:var(--ac);background:var(--acl);color:var(--ac);font-weight:600}
+.mat-pro{display:grid;grid-template-columns:1fr;gap:14px}
+.pro-card{background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:all .3s;overflow:hidden}
+.pro-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
+.pro-card.hide{display:none}
+.pro-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer}
+.pro-head .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.pro-head h5{font-size:.95rem;font-weight:700;color:var(--tx);margin:0}
+.pro-head .pro-type{font-size:.68rem;padding:2px 9px;border-radius:10px;font-weight:600;flex-shrink:0}
+.pro-body{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pro-col h6{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.pro-col h6 .ic{font-size:.9rem}
+.pro-list{list-style:none;padding:0;margin:0;font-size:.82rem;line-height:1.8}
+.pro-list li{padding-left:18px;position:relative;color:var(--tx2)}
+.pro-list li::before{content:'';position:absolute;left:0;top:10px;width:7px;height:7px;border-radius:50%}
+.pro-list.pros li::before{background:var(--gn)}
+.pro-list.cons li::before{background:var(--rd)}
+.pro-tag{display:inline-block;padding:1px 8px;border-radius:4px;font-size:.68rem;font-weight:600;margin-left:4px}
+.pro-tag-app{background:var(--acl);color:var(--ac)}
+.no-result{text-align:center;padding:40px 20px;color:var(--tx3);font-size:.9rem}
+
+/* ==================== 平板 ==================== */
+@media(max-width:960px){
+  .g2,.g3{grid-template-columns:1fr}
+  .hdr h1{font-size:1.5rem}
+  .cd{padding:18px 16px}
+  .qs{gap:10px}
+  table{font-size:.78rem}th,td{padding:8px 10px}
+  .cht{height:340px}
+}
+
+/* ==================== 手机 ==================== */
+@media(max-width:640px){
+  .hdr{padding:24px 12px 20px}
+  .hdr h1{font-size:1.1rem;letter-spacing:0;line-height:1.4}
+  .hdr p{font-size:.75rem}
+
+  .nav{gap:4px;padding:8px 8px}
+  .nav::-webkit-scrollbar{display:none}
+  .nb{padding:7px 13px;font-size:.75rem;border-radius:8px;border-width:1.5px;flex-shrink:0}
+
+  .mn{padding:12px 8px 32px}
+  .cd{padding:14px 10px;margin-bottom:12px;border-radius:10px}
+  .ct{font-size:.88rem;margin-bottom:10px;gap:5px}
+  .ct .f{display:none}
+  .ct .ic{font-size:1rem}
+
+  .sd{font-size:.76rem;padding:10px 12px;margin-bottom:14px;line-height:1.6}
+
+  .qs{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px}
+  .sc{padding:10px 6px;border-radius:8px}
+  .sc .si{font-size:1.2rem;margin-bottom:3px}
+  .sc .sv{font-size:.82rem}
+  .sc .sl{font-size:.58rem;letter-spacing:0}
+
+  .g2,.g3{grid-template-columns:1fr;gap:12px}
+
+  .tc{gap:5px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .tc::-webkit-scrollbar{display:none}
+  .ch{padding:5px 10px;font-size:.7rem;border-radius:16px;flex-shrink:0}
+
+  .fb{padding:10px 12px;font-size:.74rem;line-height:1.7;margin-bottom:12px;border-radius:8px}
+  .fb code{font-size:.72rem;padding:1px 4px}
+
+  .sym-legend{padding:10px 12px;font-size:.72rem;line-height:1.8}
+
+  .fg{margin-bottom:10px}
+  .fg label{font-size:.7rem;margin-bottom:3px;letter-spacing:.3px}
+  .fg input,.fg select{padding:9px 10px;font-size:.85rem;border-radius:7px}
+  .ih{font-size:.66rem;margin-top:3px}
+
+  .rb{padding:12px 10px;margin-top:10px;border-radius:8px}
+  .rr{padding:6px 0;flex-wrap:wrap;gap:2px}
+  .rl{font-size:.76rem;flex:1;min-width:100px}
+  .rv{font-size:.88rem;text-align:right;flex-shrink:0}
+
+  .btn{padding:9px 14px;font-size:.78rem;border-radius:7px}
+  .btn-g{gap:6px;margin-top:12px}
+  .btn-g .btn{flex:1;justify-content:center}
+
+  .en{padding:10px 12px;font-size:.76rem;border-radius:7px}
+
+  .cht{height:260px;margin-top:12px}
+  .ctb{gap:4px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .ctb::-webkit-scrollbar{display:none}
+  .cta{padding:6px 11px;font-size:.7rem;border-radius:6px;flex-shrink:0}
+
+  table{font-size:.72rem}
+  th{padding:7px 8px;font-size:.65rem;letter-spacing:.3px}
+  td{padding:6px 8px;font-size:.72rem}
+  .bd{font-size:.62rem;padding:1px 6px}
+  .tw{border-radius:8px}
+  .tw::after{content:'← 左右滑动查看 →';display:block;text-align:center;font-size:.6rem;color:var(--tx3);padding:3px;background:var(--bg2);border-top:1px solid var(--bd)}
+
+  .mat-grid{grid-template-columns:1fr;gap:12px}
+  .mat-card{padding:12px 10px;border-radius:10px}
+  .mat-card h4{font-size:.82rem;margin-bottom:8px}
+
+  .formula-detail{padding:10px 12px;font-size:.74rem;line-height:1.7;border-radius:7px;overflow-x:auto}
+
+  .ft{padding:12px;font-size:.68rem;margin-top:24px}
+
+  /* calc list mobile */
+  #calc-list>div{flex-direction:column;align-items:flex-start!important;gap:4px}
+  #calc-list>div span:last-child{font-size:.72rem!important}
+
+  .ms-box{margin-top:16px}
+  .ms-bar{gap:6px}
+  .ms-input{padding:9px 12px 9px 34px;font-size:.82rem;min-width:140px;background-position:10px center}
+  .ms-chips{gap:4px}
+  .ms-chip{padding:5px 10px;font-size:.68rem}
+  .pro-card{padding:12px 10px}
+  .pro-body{grid-template-columns:1fr;gap:8px}
+  .pro-list{font-size:.76rem;line-height:1.7}
+
+  .upd-modal{width:94vw;border-radius:16px}
+  .upd-header{padding:22px 18px 18px}
+  .upd-icon{font-size:1.8rem}
+  .upd-title{font-size:1rem}
+  .upd-body{padding:16px 18px 20px}
+  .upd-item{font-size:.8rem}
+  .upd-sub{font-size:.74rem}
+  .upd-btn{border-radius:0 0 16px 16px;padding:12px;font-size:.85rem}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>🔋 锂电池<span>正负极材料</span>比容量与比能量计算器</h1>
+  <p>基于电化学公式 · 正极 / 负极材料独立计算 · 材料密度数据库 · 可视化对比</p>
+</div>
+
+<nav class="nav">
+  <button class="nb on" onclick="sw(0)">🟢 正极材料计算</button>
+  <button class="nb" onclick="sw(1)">🔵 负极材料计算</button>
+  <button class="nb" onclick="sw(2)">📊 正负极材料参数库</button>
+  <button class="nb" onclick="sw(3)">⚡ 理论性能计算</button>
+  <button class="nb" onclick="sw(4)">📈 数据可视化</button>
+  <button class="nb" onclick="sw(5)">📚 参数科普</button>
+  <button class="nb" onclick="sw(6)">🔋 电池整包计算</button>
+</nav>
+
+<div class="mn">
+
+<!-- ==================== 模块一：正极材料 ==================== -->
+<div class="md on" id="m0">
+  <div class="sd"><strong>正极材料比容量与比能量</strong>是锂离子电池能量密度的核心决定因素。比容量由材料晶体结构和脱锂量决定，比能量还需乘以平均工作电压。</div>
+
+  <div class="qs">
+    <div class="sc"><div class="si">🧪</div><div class="sv" id="s0mc">—</div><div class="sl">理论比容量</div></div>
+    <div class="sc"><div class="si">⚡</div><div class="sv" id="s0me">—</div><div class="sl">理论比能量</div></div>
+    <div class="sc"><div class="si">🔌</div><div class="sv" id="s0v">—</div><div class="sl">工作电压</div></div>
+    <div class="sc"><div class="si">📐</div><div class="sv" id="s0ac">—</div><div class="sl">实际比容量</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="cd">
+      <div class="ct"><span class="ic">🟢</span> 正极材料参数输入</div>
+      <div style="margin-bottom:14px"><label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">快速选择</label>
+        <div class="tc" id="ct-cath">
+          <span class="ch on" onclick="fillCat('lfp',this)">LFP</span>
+          <span class="ch" onclick="fillCat('ncm811',this)">NCM811</span>
+          <span class="ch" onclick="fillCat('ncm622',this)">NCM622</span>
+          <span class="ch" onclick="fillCat('ncm523',this)">NCM523</span>
+          <span class="ch" onclick="fillCat('nca',this)">NCA</span>
+          <span class="ch" onclick="fillCat('lco',this)">LCO</span>
+          <span class="ch" onclick="fillCat('lmo',this)">LMO</span>
+          <span class="ch" onclick="fillCat('lmfp',this)">LMFP</span>
+          <span class="ch" onclick="fillCat('custom',this)" id="cat-custom-chip" style="border-style:dashed;border-color:var(--ac3);color:var(--ac)">✏️ 自定义</span>
+        </div>
+      </div>
+      <div class="fb">
+        <strong>📐 正极理论比容量：</strong><code>C = (x × F) / (3.6 × M)</code><br>
+        <strong>📐 正极理论比能量：</strong><code>E = C × V<sub>avg</sub></code>
+      </div>
+      <div class="sym-legend">
+        <div class="sym-row">
+          <code>x</code><span>可脱出锂离子数（脱锂量）</span>
+        </div>
+        <div class="sym-row">
+          <code>F</code><span>法拉第常数 = 96485 C/mol</span>
+        </div>
+        <div class="sym-row">
+          <code>M</code><span>正极活性物质摩尔质量 (g/mol)</span>
+        </div>
+        <div class="sym-row">
+          <code>V<sub>avg</sub></code><span>平均工作电压 vs Li/Li⁺ (V)</span>
+        </div>
+        <div class="sym-row">
+          <code>C</code><span>理论比容量 (mAh/g)</span>
+        </div>
+        <div class="sym-row">
+          <code>E</code><span>理论比能量 (Wh/kg)</span>
+        </div>
+      </div>
+      <div class="g2" style="margin-top:16px">
+        <div class="fg"><label>材料名称</label><input type="text" id="cat-name" value="LiFePO₄" oninput="catCalc()"></div>
+        <div class="fg"><label>摩尔质量 M (g/mol)</label><input type="number" id="cat-mol" value="157.76" step="0.01" oninput="catCalc()"></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>脱锂量 x</label><input type="number" id="cat-x" value="1" step="0.01" oninput="catCalc()"><div class="ih">可脱出Li数</div></div>
+        <div class="fg"><label>平均电压 V (V)</label><input type="number" id="cat-v" value="3.45" step="0.01" oninput="catCalc()"><div class="ih">vs Li/Li⁺</div></div>
+        <div class="fg"><label>利用率 (%)</label><input type="number" id="cat-eff" value="90" step="1" oninput="catCalc()"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label>真密度 (g/cm³)</label><input type="number" id="cat-density" value="3.6" step="0.01" oninput="catCalc()"></div>
+        <div class="fg"><label>压实密度 (g/cm³)</label><input type="number" id="cat-comp" value="2.3" step="0.01" oninput="catCalc()"></div>
+      </div>
+      <div class="formula-detail">
+        <strong>📌 脱锂量参考：</strong>LFP=1.0, NCM=0.8-1.0, NCA=0.8-0.9, LCO=0.5-0.6, LMO=1.0
+      </div>
+    </div>
+    <div class="cd">
+      <div class="ct"><span class="ic">📊</span> 计算结果</div>
+      <div class="rb">
+        <div class="rr"><span class="rl">理论比容量</span><span class="rv g" id="r0tc">—</span></div>
+        <div class="rr"><span class="rl">理论比能量</span><span class="rv o" id="r0te">—</span></div>
+        <div class="rr"><span class="rl">实际比容量</span><span class="rv" id="r0ac">—</span></div>
+        <div class="rr"><span class="rl">实际比能量</span><span class="rv p" id="r0ae">—</span></div>
+        <div class="rr"><span class="rl">体积比容量(真)</span><span class="rv" id="r0vc">—</span></div>
+        <div class="rr"><span class="rl">体积比容量(压)</span><span class="rv" id="r0vcc">—</span></div>
+      </div>
+      <div class="en" id="cat-err"></div>
+      <div style="margin-top:16px">
+        <div class="ct" style="font-size:.9rem"><span class="ic">💡</span> 计算过程</div>
+        <div id="cat-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);word-break:break-word;overflow-wrap:break-word">请先输入参数。</div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="ct" style="font-size:.9rem"><span class="ic">📏</span> 正极材料速查</div>
+        <div class="tw"><table><thead><tr><th>材料</th><th>M</th><th>x</th><th>C<sub>th</sub></th><th>V</th><th>E<sub>th</sub></th></tr></thead><tbody>
+          <tr><td><span class="bd bg2">LFP</span></td><td>157.76</td><td>1.0</td><td>170</td><td>3.45V</td><td>586</td></tr>
+          <tr><td><span class="bd bb">NCM523</span></td><td>96.46</td><td>1.0</td><td>278</td><td>3.6V</td><td>1001</td></tr>
+          <tr><td><span class="bd bo">NCM811</span></td><td>96.46</td><td>1.0</td><td>276</td><td>3.7V</td><td>1021</td></tr>
+          <tr><td><span class="bd bb">NCA</span></td><td>96.75</td><td>0.9</td><td>251</td><td>3.7V</td><td>929</td></tr>
+          <tr><td><span class="bd bp2">LCO</span></td><td>97.87</td><td>0.55</td><td>151</td><td>3.9V</td><td>589</td></tr>
+          <tr><td><span class="bd bc">LMO</span></td><td>180.81</td><td>1.0</td><td>148</td><td>4.0V</td><td>592</td></tr>
+        </tbody></table></div>
+        <div class="sym-legend" style="margin-top:10px">
+          <div class="sym-row"><code>M</code><span>正极活性物质的摩尔质量 (g/mol)</span></div>
+          <div class="sym-row"><code>x</code><span>脱锂量 — 每个分子式单元可脱出的锂离子数</span></div>
+          <div class="sym-row"><code>C<sub>th</sub></code><span>理论比容量 (mAh/g)，由公式 C = (x×F)/(3.6×M) 计算</span></div>
+          <div class="sym-row"><code>V</code><span>平均工作电压 vs Li/Li⁺ (V)，决定比能量高低</span></div>
+          <div class="sym-row"><code>E<sub>th</sub></code><span>理论比能量 (Wh/kg)，由公式 E = C<sub>th</sub> × V 计算</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 模块二：负极材料 ==================== -->
+<div class="md" id="m1">
+  <div class="sd"><strong>负极材料比容量与比能量</strong>决定电池容量上限。比容量由嵌锂量决定，比能量以工作电位 vs Li/Li⁺ 计算。</div>
+
+  <div class="qs">
+    <div class="sc"><div class="si">🧪</div><div class="sv" id="s1mc">—</div><div class="sl">理论比容量</div></div>
+    <div class="sc"><div class="si">⚡</div><div class="sv" id="s1me">—</div><div class="sl">理论比能量</div></div>
+    <div class="sc"><div class="si">🔌</div><div class="sv" id="s1v">—</div><div class="sl">工作电位</div></div>
+    <div class="sc"><div class="si">📐</div><div class="sv" id="s1ac">—</div><div class="sl">实际比容量</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="cd">
+      <div class="ct"><span class="ic">🔵</span> 负极材料参数输入</div>
+      <div style="margin-bottom:14px"><label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">快速选择</label>
+        <div class="tc" id="ct-anod">
+          <span class="ch on" onclick="fillAno('graphite',this)">石墨</span>
+          <span class="ch" onclick="fillAno('si',this)">硅 Si</span>
+          <span class="ch" onclick="fillAno('siox',this)">SiO<sub>x</sub></span>
+          <span class="ch" onclick="fillAno('sic',this)">硅碳</span>
+          <span class="ch" onclick="fillAno('lto',this)">LTO</span>
+          <span class="ch" onclick="fillAno('lithium',this)">锂金属</span>
+          <span class="ch" onclick="fillAno('custom',this)" id="ano-custom-chip" style="border-style:dashed;border-color:var(--ac3);color:var(--ac)">✏️ 自定义</span>
+        </div>
+      </div>
+      <div class="fb">
+        <strong>📐 负极理论比容量：</strong><code>C = (y × F) / (3.6 × M)</code><br>
+        <strong>📐 负极理论比能量：</strong><code>E = C × V<sub>work</sub></code>
+      </div>
+      <div class="sym-legend">
+        <div class="sym-row">
+          <code>y</code><span>嵌锂量（每个分子式单元可嵌入的锂原子数）</span>
+        </div>
+        <div class="sym-row">
+          <code>F</code><span>法拉第常数 = 96485 C/mol</span>
+        </div>
+        <div class="sym-row">
+          <code>M</code><span>负极活性物质摩尔质量 (g/mol)</span>
+        </div>
+        <div class="sym-row">
+          <code>V<sub>work</sub></code><span>工作电位 vs Li/Li⁺ (V)</span>
+        </div>
+        <div class="sym-row">
+          <code>C</code><span>理论比容量 (mAh/g)</span>
+        </div>
+        <div class="sym-row">
+          <code>E</code><span>理论比能量 (Wh/kg)</span>
+        </div>
+      </div>
+      <div class="g2" style="margin-top:16px">
+        <div class="fg"><label>材料名称</label><input type="text" id="ano-name" value="石墨 (C₆→LiC₆)" oninput="anoCalc()"></div>
+        <div class="fg"><label>摩尔质量 M (g/mol)</label><input type="number" id="ano-mol" value="72.066" step="0.001" oninput="anoCalc()"><div class="ih">石墨C<sub>6</sub>=72.066</div></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>嵌锂量 y</label><input type="number" id="ano-y" value="1" step="0.1" oninput="anoCalc()"><div class="ih">石墨LiC<sub>6</sub>→y=1</div></div>
+        <div class="fg"><label>工作电位 V (V)</label><input type="number" id="ano-v" value="0.1" step="0.01" oninput="anoCalc()"><div class="ih">vs Li/Li⁺</div></div>
+        <div class="fg"><label>利用率 (%)</label><input type="number" id="ano-eff" value="92" step="1" oninput="anoCalc()"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label>真密度 (g/cm³)</label><input type="number" id="ano-density" value="2.2" step="0.01" oninput="anoCalc()"></div>
+        <div class="fg"><label>压实密度 (g/cm³)</label><input type="number" id="ano-comp" value="1.6" step="0.01" oninput="anoCalc()"></div>
+      </div>
+      <div class="formula-detail">
+        <strong>📌 嵌锂量参考：</strong>石墨C<sub>6</sub> y=1, Si y=4.4, SiO<sub>x</sub> y=4.4, LTO y=3<br>
+        <strong>📌 复合材料：</strong>硅碳用混合模型（输入Si含量%和Si理论容量4200）
+      </div>
+    </div>
+    <div class="cd">
+      <div class="ct"><span class="ic">📊</span> 计算结果</div>
+      <div class="rb">
+        <div class="rr"><span class="rl">理论比容量</span><span class="rv g" id="r1tc">—</span></div>
+        <div class="rr"><span class="rl">理论比能量</span><span class="rv o" id="r1te">—</span></div>
+        <div class="rr"><span class="rl">实际比容量</span><span class="rv" id="r1ac">—</span></div>
+        <div class="rr"><span class="rl">实际比能量</span><span class="rv p" id="r1ae">—</span></div>
+        <div class="rr"><span class="rl">体积比容量(真)</span><span class="rv" id="r1vc">—</span></div>
+        <div class="rr"><span class="rl">体积比容量(压)</span><span class="rv" id="r1vcc">—</span></div>
+      </div>
+      <div class="en" id="ano-err"></div>
+      <div style="margin-top:16px">
+        <div class="ct" style="font-size:.9rem"><span class="ic">💡</span> 计算过程</div>
+        <div id="ano-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);word-break:break-word;overflow-wrap:break-word">请先输入参数。</div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="ct" style="font-size:.9rem"><span class="ic">📏</span> 负极材料速查</div>
+        <div class="tw"><table><thead><tr><th>材料</th><th>M</th><th>y</th><th>C<sub>th</sub></th><th>V</th><th>E<sub>th</sub></th></tr></thead><tbody>
+          <tr><td><span class="bd bg2">石墨</span></td><td>72.07</td><td>1</td><td>372</td><td>0.1V</td><td>37</td></tr>
+          <tr><td><span class="bd bo">硅Si</span></td><td>28.09</td><td>4.4</td><td>4200</td><td>0.3V</td><td>1260</td></tr>
+          <tr><td><span class="bd bo">SiO<sub>x</sub></span></td><td>44.09</td><td>4.4</td><td>2680</td><td>0.3V</td><td>804</td></tr>
+          <tr><td><span class="bd bb">硅碳</span></td><td>—</td><td>—</td><td>450-600</td><td>0.2V</td><td>~100</td></tr>
+          <tr><td><span class="bd bc">硬碳</span></td><td>3.6-4.0Å</td><td>—</td><td>280-350</td><td>0.5V</td><td>~150</td></tr>
+          <tr><td><span class="bd brd">LTO</span></td><td>459.1</td><td>3</td><td>175</td><td>1.55V</td><td>271</td></tr>
+          <tr><td><span class="bd bp2">锂金属</span></td><td>6.94</td><td>1</td><td>3860</td><td>0V</td><td>0*</td></tr>
+        </tbody></table></div>
+        <div class="sym-legend" style="margin-top:10px">
+          <div class="sym-row"><code>M</code><span>负极活性物质的摩尔质量 (g/mol)</span></div>
+          <div class="sym-row"><code>y</code><span>嵌锂量 — 每个分子式单元可嵌入的锂原子数</span></div>
+          <div class="sym-row"><code>C<sub>th</sub></code><span>理论比容量 (mAh/g)，由公式 C = (y×F)/(3.6×M) 计算</span></div>
+          <div class="sym-row"><code>V</code><span>工作电位 vs Li/Li⁺ (V)，电位越低则全电池电压越高</span></div>
+          <div class="sym-row"><code>E<sub>th</sub></code><span>理论比能量 (Wh/kg)，由公式 E = C<sub>th</sub> × V 计算</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 模块三：材料参数库 ==================== -->
+<div class="md" id="m2">
+  <div class="sd">收录主流正极与负极材料的本征密度、比容量、平台电压等关键参数。</div>
+  <div class="mat-grid">
+    <div class="mat-card">
+      <h4><span class="dot dot-c"></span> 正极材料</h4>
+      <div class="tw"><table><thead><tr><th>材料</th><th>化学式</th><th>M</th><th>x</th><th>真密度</th><th>压实密度</th><th>C<sub>th</sub></th><th>C实</th><th>V</th><th>E<sub>th</sub></th></tr></thead><tbody>
+        <tr><td><strong>LFP</strong></td><td>LiFePO<sub>4</sub></td><td>157.76</td><td>1.0</td><td>3.6</td><td>2.2-2.5</td><td>170</td><td>140-160</td><td>3.45</td><td>586</td></tr>
+        <tr><td><strong>NCM111</strong></td><td>LiNi<sub>1/3</sub>Co<sub>1/3</sub>Mn<sub>1/3</sub>O<sub>2</sub></td><td>96.46</td><td>1.0</td><td>4.7</td><td>3.2-3.4</td><td>278</td><td>140-160</td><td>3.6</td><td>1001</td></tr>
+        <tr><td><strong>NCM523</strong></td><td>LiNi<sub>0.5</sub>Co<sub>0.2</sub>Mn<sub>0.3</sub>O<sub>2</sub></td><td>96.46</td><td>1.0</td><td>4.7</td><td>3.2-3.5</td><td>278</td><td>150-170</td><td>3.6</td><td>1001</td></tr>
+        <tr><td><strong>NCM622</strong></td><td>LiNi<sub>0.6</sub>Co<sub>0.2</sub>Mn<sub>0.2</sub>O<sub>2</sub></td><td>96.46</td><td>1.0</td><td>4.7</td><td>3.3-3.5</td><td>276</td><td>160-180</td><td>3.7</td><td>1021</td></tr>
+        <tr><td><strong>NCM811</strong></td><td>LiNi<sub>0.8</sub>Co<sub>0.1</sub>Mn<sub>0.1</sub>O<sub>2</sub></td><td>96.46</td><td>1.0</td><td>4.7</td><td>3.3-3.6</td><td>276</td><td>180-210</td><td>3.7</td><td>1021</td></tr>
+        <tr><td><strong>NCA</strong></td><td>LiNi<sub>0.8</sub>Co<sub>0.15</sub>Al<sub>0.05</sub>O<sub>2</sub></td><td>96.75</td><td>0.9</td><td>4.8</td><td>3.3-3.6</td><td>251</td><td>180-200</td><td>3.7</td><td>929</td></tr>
+        <tr><td><strong>LCO</strong></td><td>LiCoO<sub>2</sub></td><td>97.87</td><td>0.55</td><td>5.1</td><td>3.8-4.2</td><td>151</td><td>140-160</td><td>3.9</td><td>589</td></tr>
+        <tr><td><strong>LMO</strong></td><td>LiMn<sub>2</sub>O<sub>4</sub></td><td>180.81</td><td>1.0</td><td>4.3</td><td>3.0-3.3</td><td>148</td><td>100-120</td><td>4.0</td><td>592</td></tr>
+        <tr><td><strong>LMFP</strong></td><td>LiMn<sub>0.6</sub>Fe<sub>0.4</sub>PO<sub>4</sub></td><td>~155</td><td>1.0</td><td>3.5</td><td>2.0-2.4</td><td>~170</td><td>140-155</td><td>3.8</td><td>~646</td></tr>
+        <tr><td><strong>富锂锰基</strong></td><td>Li<sub>1.2</sub>Mn<sub>0.54</sub>Ni<sub>0.13</sub>Co<sub>0.13</sub>O<sub>2</sub></td><td>~95</td><td>1.2</td><td>4.5</td><td>3.0-3.4</td><td>~338</td><td>200-280</td><td>3.5</td><td>~1183</td></tr>
+      </tbody></table></div>
+      <div class="ih" style="margin-top:6px">密度单位g/cm³, 比容量mAh/g, 比能量Wh/kg</div>
+      <div class="sym-legend" style="margin-top:12px">
+        <div class="sym-row"><code>M</code><span>正极活性物质的摩尔质量 (g/mol)</span></div>
+        <div class="sym-row"><code>x</code><span>脱锂量 — 每个分子式单元可脱出的锂离子数</span></div>
+        <div class="sym-row"><code>真密度</code><span>材料本征密度 (g/cm³)，即理论晶体密度</span></div>
+        <div class="sym-row"><code>压实密度</code><span>极片辊压后的实际密度 (g/cm³)，受颗粒形貌和工艺影响</span></div>
+        <div class="sym-row"><code>C<sub>th</sub></code><span>理论比容量 (mAh/g)，由公式 C = (x×F)/(3.6×M) 计算</span></div>
+        <div class="sym-row"><code>C<sub>实</sub></code><span>实际比容量 (mAh/g)，考虑利用率后的可逆容量</span></div>
+        <div class="sym-row"><code>V</code><span>平均工作电压 vs Li/Li⁺ (V)，决定比能量高低</span></div>
+        <div class="sym-row"><code>E<sub>th</sub></code><span>理论比能量 (Wh/kg)，由公式 E = C<sub>th</sub> × V 计算</span></div>
+      </div>
+    </div>
+    <div class="mat-card">
+      <h4><span class="dot dot-a"></span> 负极材料</h4>
+      <div class="tw"><table><thead><tr><th>材料</th><th>化学式</th><th>M</th><th>y</th><th>真密度</th><th>压实密度</th><th>C<sub>th</sub></th><th>C实</th><th>V</th><th>E<sub>th</sub></th></tr></thead><tbody>
+        <tr><td><strong>人造石墨</strong></td><td>C<sub>6</sub>→LiC<sub>6</sub></td><td>72.07</td><td>1</td><td>2.2</td><td>1.5-1.7</td><td>372</td><td>340-360</td><td>0.1</td><td>37</td></tr>
+        <tr><td><strong>天然石墨</strong></td><td>C<sub>6</sub>→LiC<sub>6</sub></td><td>72.07</td><td>1</td><td>2.2</td><td>1.4-1.6</td><td>372</td><td>330-355</td><td>0.1</td><td>37</td></tr>
+        <tr><td><strong>硅Si</strong></td><td>Si→Li<sub>4.4</sub>Si</td><td>28.09</td><td>4.4</td><td>2.3</td><td>0.8-1.2</td><td>4200</td><td>1000-2000</td><td>0.3</td><td>1260</td></tr>
+        <tr><td><strong>SiO<sub>x</sub></strong></td><td>SiO→Li<sub>4.4</sub>Si</td><td>44.09</td><td>4.4</td><td>2.3</td><td>0.9-1.2</td><td>2680</td><td>800-1500</td><td>0.3</td><td>804</td></tr>
+        <tr><td><strong>硅碳</strong></td><td>Si/C</td><td>—</td><td>—</td><td>~2.1</td><td>1.0-1.4</td><td>—</td><td>450-600</td><td>0.2</td><td>~100</td></tr>
+        <tr><td><strong>硬碳</strong></td><td>无序碳</td><td>3.6-4.0Å</td><td>—</td><td>1.5</td><td>0.9-1.1</td><td>280-350</td><td>250-350</td><td>0.5</td><td>~150</td></tr>
+        <tr><td><strong>LTO</strong></td><td>Li<sub>4</sub>Ti<sub>5</sub>O<sub>12</sub></td><td>459.1</td><td>3</td><td>3.5</td><td>1.8-2.1</td><td>175</td><td>155-170</td><td>1.55</td><td>271</td></tr>
+        <tr><td><strong>软碳</strong></td><td>可石墨化碳</td><td>~12</td><td>~1.5</td><td>2.0</td><td>1.1-1.3</td><td>~250</td><td>200-280</td><td>0.3</td><td>~75</td></tr>
+        <tr><td><strong>锡基合金</strong></td><td>Sn-Co-C</td><td>118.71</td><td>4.4</td><td>7.3</td><td>—</td><td>994</td><td>500-700</td><td>0.4</td><td>398</td></tr>
+        <tr><td><strong>锂金属</strong></td><td>Li</td><td>6.94</td><td>1</td><td>0.534</td><td>—</td><td>3860</td><td>—</td><td>0</td><td>0*</td></tr>
+      </tbody></table></div>
+      <div class="ih" style="margin-top:6px">V<sub>work</sub> = 工作电位 vs Li/Li⁺, E<sub>th</sub> = C<sub>th</sub> × V<sub>work</sub></div>
+      <div class="sym-legend" style="margin-top:12px">
+        <div class="sym-row"><code>M</code><span>负极活性物质的摩尔质量 (g/mol)</span></div>
+        <div class="sym-row"><code>y</code><span>嵌锂量 — 每个分子式单元可嵌入的锂原子数</span></div>
+        <div class="sym-row"><code>真密度</code><span>材料本征密度 (g/cm³)，即理论晶体密度</span></div>
+        <div class="sym-row"><code>压实密度</code><span>极片辊压后的实际密度 (g/cm³)，受颗粒形貌和工艺影响</span></div>
+        <div class="sym-row"><code>C<sub>th</sub></code><span>理论比容量 (mAh/g)，由公式 C = (y×F)/(3.6×M) 计算</span></div>
+        <div class="sym-row"><code>C<sub>实</sub></code><span>实际比容量 (mAh/g)，考虑利用率后的可逆容量</span></div>
+        <div class="sym-row"><code>V<sub>work</sub></code><span>工作电位 vs Li/Li⁺ (V)，电位越低则全电池电压越高</span></div>
+        <div class="sym-row"><code>E<sub>th</sub></code><span>理论比能量 (Wh/kg)，由公式 E = C<sub>th</sub> × V<sub>work</sub> 计算</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cd" style="margin-top:16px">
+    <div class="ct"><span class="ic">🔬</span> 辅助材料</div>
+    <div class="g2">
+      <div><div class="ct" style="font-size:.85rem">💧 电解液</div><div class="tw"><table><thead><tr><th>类型</th><th>密度</th><th>电导率</th></tr></thead><tbody>
+        <tr><td>EC/DMC</td><td>1.20-1.25</td><td>~10 mS/cm</td></tr>
+        <tr><td>EC/EMC</td><td>1.15-1.20</td><td>~8 mS/cm</td></tr>
+        <tr><td>固态LLZO</td><td>5.1</td><td>0.1-1 mS/cm</td></tr>
+      </tbody></table></div></div>
+      <div><div class="ct" style="font-size:.85rem">🧻 隔膜</div><div class="tw"><table><thead><tr><th>类型</th><th>厚度</th><th>孔隙率</th></tr></thead><tbody>
+        <tr><td>PE</td><td>12-25μm</td><td>35-45%</td></tr>
+        <tr><td>PP</td><td>16-25μm</td><td>35-45%</td></tr>
+        <tr><td>陶瓷涂覆</td><td>16-30μm</td><td>35-50%</td></tr>
+      </tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ===== 材料优缺点对比 ===== -->
+  <div class="ms-box">
+    <div class="ct"><span class="ic">⚖️</span> 材料优缺点对比 <span class="f">Pros & Cons</span></div>
+    <div class="sd" style="margin-bottom:16px">涵盖 18 种主流正负极材料的核心优势、主要短板与典型应用场景，支持搜索和分类筛选。</div>
+
+    <div class="ms-bar">
+      <input class="ms-input" type="text" id="mat-search" placeholder="搜索材料名称、关键词（如：安全、快充、硅）…" oninput="filterMats()">
+    </div>
+    <div class="ms-chips" id="mat-chips">
+      <span class="ms-chip on" onclick="filterTag('all',this)">全部</span>
+      <span class="ms-chip" onclick="filterTag('cathode',this)">🟢 正极</span>
+      <span class="ms-chip" onclick="filterTag('anode',this)">🔵 负极</span>
+      <span class="ms-chip" onclick="filterTag('high-cap',this)">⚡ 高容量</span>
+      <span class="ms-chip" onclick="filterTag('safe',this)">🛡️ 高安全</span>
+      <span class="ms-chip" onclick="filterTag('fast-charge',this)">⚡ 快充</span>
+      <span class="ms-chip" onclick="filterTag('long-life',this)">♻️ 长寿命</span>
+      <span class="ms-chip" onclick="filterTag('low-cost',this)">💰 低成本</span>
+    </div>
+
+    <div class="mat-pro" id="mat-pro-list">
+
+      <!-- ===== 正极材料 ===== -->
+
+      <!-- LFP -->
+      <div class="pro-card" data-type="cathode" data-tags="safe,long-life,low-cost" data-keywords="lfp 磷酸铁锂 lifepo4 安全 长寿命 低成本 铁锂">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>LFP 磷酸铁锂</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>热稳定性极佳，分解温度 >500°C，几乎不起火</li>
+            <li>循环寿命长，可达 3000-6000 次以上</li>
+            <li>原料丰富（铁、磷），成本低，无钴无镍</li>
+            <li>环境友好，无毒重金属</li>
+            <li>放电平台平坦，电压稳定性好</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>理论比容量偏低（170 mAh/g），能量密度受限</li>
+            <li>工作电压较低（3.45V），比能量 ~586 Wh/kg</li>
+            <li>低温性能差，-20°C 容量衰减显著</li>
+            <li>电子导电率低，需碳包覆或纳米化改性</li>
+            <li>体积能量密度低于三元材料</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 电动大巴、储能电站、中低端乘用车、电动工具</div>
+      </div>
+
+      <!-- NCM111 -->
+      <div class="pro-card" data-type="cathode" data-tags="long-life" data-keywords="ncm111 三元 镍钴锰 111 均衡">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>NCM111 三元材料</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>Ni:Co:MN=1:1:1，综合性能均衡</li>
+            <li>循环稳定性好，结构坍塌风险低</li>
+            <li>热稳定性优于高镍三元</li>
+            <li>工艺成熟，一致性好控制</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量较低（实际 140-160 mAh/g），能量密度有限</li>
+            <li>含钴量高，成本受钴价波动影响大</li>
+            <li>能量密度不及高镍方案，逐渐被替代</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 中端电动车、电动工具、消费电子（逐步被NCM523/622替代）</div>
+      </div>
+
+      <!-- NCM523 -->
+      <div class="pro-card" data-type="cathode" data-tags="" data-keywords="ncm523 三元 镍钴锰 523">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>NCM523 三元材料</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量较NCM111提升（实际150-170 mAh/g）</li>
+            <li>成本与性能的良好平衡点</li>
+            <li>热稳定性仍可接受</li>
+            <li>产业链成熟，供应充足</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>能量密度天花板明显（~1001 Wh/kg 理论）</li>
+            <li>钴含量仍较高（20%），成本压力</li>
+            <li>高镍化趋势下市场空间被压缩</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 中端乘用车、储能系统、电动物流车</div>
+      </div>
+
+      <!-- NCM622 -->
+      <div class="pro-card" data-type="cathode" data-tags="high-cap" data-keywords="ncm622 三元 镍钴锰 622">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>NCM622 三元材料</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量提升至160-180 mAh/g，能量密度进步</li>
+            <li>钴用量降至20%，成本优化</li>
+            <li>循环性能与安全性的过渡平衡</li>
+            <li>量产工艺成熟，良率高</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>热稳定性不如NCM523，需更精细的热管理</li>
+            <li>高电压（>4.2V）下结构不稳定性增加</li>
+            <li>被NCM811在能量密度上压制</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 中高端乘用车、电动SUV</div>
+      </div>
+
+      <!-- NCM811 -->
+      <div class="pro-card" data-type="cathode" data-tags="high-cap" data-keywords="ncm811 三元 镍钴锰 811 高镍 高能量">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>NCM811 高镍三元</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量高（实际180-210 mAh/g），能量密度领先</li>
+            <li>钴含量仅10%，成本与资源压力最小</li>
+            <li>理论比能量~1021 Wh/kg，满足长续航需求</li>
+            <li>被特斯拉、宁德时代等头部企业重点布局</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>热稳定性差，热失控温度低，安全风险高</li>
+            <li>循环寿命较短（通常1000-2000次）</li>
+            <li>产气严重，需特殊电解液配方</li>
+            <li>对水分极其敏感，生产环境要求严苛</li>
+            <li>高电压下表面副反应多，需包覆改性</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 高端长续航电动车（特斯拉Model 3/Y等）、电动航空</div>
+      </div>
+
+      <!-- NCA -->
+      <div class="pro-card" data-type="cathode" data-tags="high-cap" data-keywords="nca 镍钴铝 高镍 特斯拉">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>NCA 镍钴铝</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量高（实际180-200 mAh/g），与NCM811相当</li>
+            <li>铝掺杂提升结构稳定性，倍率性能优异</li>
+            <li>松下/特斯拉技术路线成熟</li>
+            <li>能量密度高，适合长续航</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>热稳定性差，安全风险与NCM811类似</li>
+            <li>生产工艺复杂（需严格控制Al掺杂量）</li>
+            <li>专利壁垒高，供应商集中（松下为主）</li>
+            <li>循环寿命不如中镍三元</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 特斯拉车型（圆柱电池）、高端消费电子</div>
+      </div>
+
+      <!-- LCO -->
+      <div class="pro-card" data-type="cathode" data-tags="" data-keywords="lco 钴酸锂 lico2 消费电子 手机">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>LCO 钴酸锂</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>工作电压高（3.9V），体积能量密度优异</li>
+            <li>压实密度高（3.8-4.2 g/cm³），适合小型电池</li>
+            <li>工艺极其成熟，一致性好</li>
+            <li>自放电率低，电压平台稳定</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>实际比容量仅140-160 mAh/g（理论151，脱锂量受限）</li>
+            <li>钴含量极高（>60%），成本高且资源受限</li>
+            <li>热稳定性一般，过充易分解</li>
+            <li>循环寿命中等（500-1000次）</li>
+            <li>不适合动力电池，逐渐被三元替代</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 手机、平板、笔记本电脑、智能穿戴（消费电子主力）</div>
+      </div>
+
+      <!-- LMO -->
+      <div class="pro-card" data-type="cathode" data-tags="safe,low-cost,fast-charge" data-keywords="lmo 锰酸锂 limn2o4 快充 安全">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>LMO 锰酸锂</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>工作电压高（4.0V），功率密度好</li>
+            <li>三维锂离子扩散通道，倍率性能优异</li>
+            <li>原料丰富（锰），成本低</li>
+            <li>热稳定性优于高镍三元</li>
+            <li>环境友好，无钴无镍</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量低（实际100-120 mAh/g），能量密度受限</li>
+            <li>高温下 Mn 溶解严重，循环寿命短</li>
+            <li>Jahn-Teller 效应导致结构畸变</li>
+            <li>高温（>55°C）容量衰减快</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 电动大巴（快充场景）、电动工具、低成本动力电池</div>
+      </div>
+
+      <!-- LMFP -->
+      <div class="pro-card" data-type="cathode" data-tags="safe,low-cost,high-cap" data-keywords="lmfp 磷酸锰铁锂 锰铁 安全 新一代">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>LMFP 磷酸锰铁锂</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>电压平台提升至3.8V（比LFP高0.35V），能量密度+15%</li>
+            <li>继承LFP的安全性和长循环优势</li>
+            <li>成本仅比LFP略高，性价比突出</li>
+            <li>被视为"下一代磷酸盐"，产业化加速中</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>电子导电率比LFP更低，需更精细的碳网络</li>
+            <li>Mn²⁺ 溶解问题仍存在</li>
+            <li>双电压平台（Fe/Mn），放电曲线不平坦</li>
+            <li>产业化成熟度不如LFP，一致性待提升</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 新能源乘用车（宁德时代、比亚迪布局）、两轮车</div>
+      </div>
+
+      <!-- 富锂锰基 -->
+      <div class="pro-card" data-type="cathode" data-tags="high-cap" data-keywords="富锂锰基 富锂 高容量 下一代 o3">
+        <div class="pro-head"><span class="dot dot-c"></span><h5>富锂锰基</h5><span class="pro-type" style="background:var(--gnl);color:var(--gn)">正极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>理论比容量极高（~338 mAh/g），远超现有正极</li>
+            <li>实际可达200-280 mAh/g，能量密度潜力巨大</li>
+            <li>锰含量高，钴用量少，成本潜力好</li>
+            <li>被视为"终极正极"候选之一</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>首次不可逆容量损失大（20-30%）</li>
+            <li>循环过程中电压持续衰减</li>
+            <li>倍率性能差，动力学缓慢</li>
+            <li>产气严重，需特殊电解液</li>
+            <li>尚处于研发阶段，量产工艺不成熟</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 下一代高能量密度电池（研发中）、远期动力电池</div>
+      </div>
+
+      <!-- ===== 负极材料 ===== -->
+
+      <!-- 人造石墨 -->
+      <div class="pro-card" data-type="anode" data-tags="long-life,low-cost" data-keywords="人造石墨 石墨 graphite 碳 负极 主流 长寿命">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>人造石墨</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>技术最成熟，产业链最完善</li>
+            <li>循环寿命长（2000-5000次）</li>
+            <li>电压平台平稳（~0.1V），有利于电池管理</li>
+            <li>体积膨胀小（~10%），对极片结构友好</li>
+            <li>成本低，供应充足</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>理论比容量低（372 mAh/g），已接近极限</li>
+            <li>低温析锂风险，快充能力受限</li>
+            <li>与硅负极相比能量密度差距大</li>
+            <li>首次库仑效率高但仍有SEI损耗</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 动力电池（主流）、储能、消费电子（绝对主力负极）</div>
+      </div>
+
+      <!-- 天然石墨 -->
+      <div class="pro-card" data-type="anode" data-tags="low-cost" data-keywords="天然石墨 石墨 graphite 碳 负极 低成本">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>天然石墨</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>成本低于人造石墨（无需石墨化处理）</li>
+            <li>资源丰富，加工能耗低</li>
+            <li>比容量与人造石墨相当（330-355 mAh/g）</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>各向异性明显，倍率性能不如人造石墨</li>
+            <li>表面缺陷多，首次库仑效率偏低</li>
+            <li>循环稳定性不如人造石墨</li>
+            <li>需表面改性处理才能用于动力电池</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 消费电子、低端动力电池、铅酸替代</div>
+      </div>
+
+      <!-- 硅 -->
+      <div class="pro-card" data-type="anode" data-tags="high-cap" data-keywords="硅 si silicon 高容量 下一代 4200 膨胀">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>硅 Si</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>理论比容量极高（4200 mAh/g），是石墨的11倍</li>
+            <li>工作电位适中（~0.3V），安全窗口好</li>
+            <li>地壳丰度高（第二丰富元素），资源无忧</li>
+            <li>被视为下一代负极核心材料</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>体积膨胀 ~300%，导致极片粉化脱落</li>
+            <li>SEI 膜反复破裂重建，消耗大量锂</li>
+            <li>循环寿命短（通常 <500 次）</li>
+            <li>导电性差，需纳米化+碳复合</li>
+            <li>纯硅极少见，多以掺混形式使用</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 高端消费电子（少量掺混5-10%）、下一代动力电池</div>
+      </div>
+
+      <!-- SiOx -->
+      <div class="pro-card" data-type="anode" data-tags="high-cap" data-keywords="siox 氧化硅 sio 硅氧 高容量">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>SiO<sub>x</sub> 氧化硅</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量高（2680 mAh/g），远超石墨</li>
+            <li>体积膨胀比纯硅小（~160%），循环更稳定</li>
+            <li>首次生成的 Li<sub>4</sub>SiO<sub>4</sub> 起到缓冲作用</li>
+            <li>已在消费电子中批量应用</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>首次库仑效率低（~65-75%），需预锂化</li>
+            <li>导电性极差，必须碳包覆</li>
+            <li>成本高于石墨</li>
+            <li>循环寿命仍不及石墨（500-1000次）</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 手机电池（三星、华为等）、高端消费电子、部分动力电池</div>
+      </div>
+
+      <!-- 硅碳 -->
+      <div class="pro-card" data-type="anode" data-tags="high-cap,fast-charge" data-keywords="硅碳 sic 硅碳复合 高容量 快充 掺混">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>硅碳 Si/C</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>综合了硅的高容量和碳的缓冲作用</li>
+            <li>比容量 450-600 mAh/g，比石墨提升50%+</li>
+            <li>碳基体抑制膨胀，循环改善</li>
+            <li>产业化进程最快，已有规模量产</li>
+            <li>快充性能优于纯石墨</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量仍远低于纯硅理论值</li>
+            <li>工艺复杂（CVD/球磨/喷雾干燥等），成本高</li>
+            <li>硅含量越高，循环衰减越快</li>
+            <li>首次库仑效率需预锂化补偿</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 高端电动车（蔚来、广汽等）、消费电子、动力电池新一代</div>
+      </div>
+
+      <!-- 硬碳 -->
+      <div class="pro-card" data-type="anode" data-tags="fast-charge" data-keywords="硬碳 hard carbon 钠电 快充 钠离子">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>硬碳</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>钠离子电池首选负极材料</li>
+            <li>工作电位适中（~0.5V），不易析钠</li>
+            <li>倍率性能好，适合快充</li>
+            <li>原料来源广泛（生物质、树脂等）</li>
+            <li>低温性能优于石墨</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量偏低（250-350 mAh/g）</li>
+            <li>首次库仑效率低（~70-80%）</li>
+            <li>压实密度低，体积能量密度差</li>
+            <li>钠电产业链尚不成熟</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 钠离子电池（宁德时代、中科海钠）、低速电动车、储能</div>
+      </div>
+
+      <!-- LTO -->
+      <div class="pro-card" data-type="anode" data-tags="safe,fast-charge,long-life" data-keywords="lto 钛酸锂 li4ti5o12 快充 安全 长寿命">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>LTO 钛酸锂</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>零应变材料，体积膨胀几乎为零（<1%）</li>
+            <li>循环寿命极长（>10000次）</li>
+            <li>工作电位高（1.55V），不析锂，安全性极佳</li>
+            <li>倍率性能优异，支持 10C+ 快充</li>
+            <li>低温性能好，-40°C仍可工作</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量低（175 mAh/g），能量密度差</li>
+            <li>工作电位高（1.55V），全电池电压低 → 比能量仅271 Wh/kg</li>
+            <li>产气问题严重（与电解液反应）</li>
+            <li>成本高（钛原料+纳米化工艺）</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 快充公交（银隆钛酸锂）、电网储能、军工/航天</div>
+      </div>
+
+      <!-- 软碳 -->
+      <div class="pro-card" data-type="anode" data-tags="low-cost" data-keywords="软碳 soft carbon 可石墨化 低成本">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>软碳</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>原料成本低（石油焦、沥青焦）</li>
+            <li>倍率性能优于石墨</li>
+            <li>可高温石墨化，工艺灵活</li>
+            <li>低温性能好</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>比容量低（200-280 mAh/g）</li>
+            <li>不可逆容量大，首次效率低</li>
+            <li>压实密度低，体积能量密度差</li>
+            <li>市场定位被硬碳和石墨挤压</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 钠离子电池、低端锂电、超级电容器</div>
+      </div>
+
+      <!-- 锡基合金 -->
+      <div class="pro-card" data-type="anode" data-tags="high-cap" data-keywords="锡基 sn 锡合金 sn-co-c 高容量">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>锡基合金</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>比容量高（994 mAh/g 理论），远超石墨</li>
+            <li>导电性好（金属特性）</li>
+            <li>工作电位适中（~0.4V）</li>
+            <li>与碳复合可改善循环</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>体积膨胀大（~260%），循环衰减快</li>
+            <li>密度高（7.3 g/cm³），重量劣势</li>
+            <li>工艺复杂，成本高</li>
+            <li>产业化程度低，应用有限</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 研发阶段、Sony早期负极方案、特殊场景</div>
+      </div>
+
+      <!-- 锂金属 -->
+      <div class="pro-card" data-type="anode" data-tags="high-cap" data-keywords="锂金属 lithium metal 负极 3860 固态 终极">
+        <div class="pro-head"><span class="dot dot-a"></span><h5>锂金属</h5><span class="pro-type" style="background:var(--acl);color:var(--ac)">负极</span></div>
+        <div class="pro-body">
+          <div class="pro-col"><h6><span class="ic">✅</span> 优势</h6><ul class="pro-list pros">
+            <li>理论比容量最高（3860 mAh/g）</li>
+            <li>电位最负（-3.04V vs SHE），全电池电压最大</li>
+            <li>密度极低（0.534 g/cm³），重量优势</li>
+            <li>"终极负极"——锂硫/锂空电池必需</li>
+          </ul></div>
+          <div class="pro-col"><h6><span class="ic">❌</span> 劣势</h6><ul class="pro-list cons">
+            <li>枝晶生长，刺穿隔膜导致短路起火</li>
+            <li>无限体积变化，无结构支撑</li>
+            <li>与电解液持续反应，库仑效率低</li>
+            <li>必须搭配固态电解质才可能实用</li>
+            <li>目前仅实验室/卫星等极端场景使用</li>
+          </ul></div>
+        </div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--tx3)"><span class="pro-tag pro-tag-app">应用</span> 固态电池（研发中）、锂硫电池、航天/军工一次电池</div>
+      </div>
+
+    </div>
+    <div class="no-result" id="no-mat-result" style="display:none">🔍 未找到匹配的材料，请尝试其他关键词</div>
+  </div>
+
+</div>
+
+<!-- ==================== 模块四：要求计算 ==================== -->
+<div class="md" id="m3">
+  <div class="sd"><strong>理论性能计算</strong>选择一个材料后，自动联动比容量→比能量→比功率全部计算，每步独立输出结果。</div>
+
+  <!-- 材料快速选择（独立于其他模块） -->
+  <div class="cd">
+    <div class="ct"><span class="ic">📋</span> 材料快速选择</div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">🟢 正极材料</label>
+      <div class="tc" id="ct-req-mat">
+        <span class="ch on" onclick="reqFill('lfp',this)">LFP</span>
+        <span class="ch" onclick="reqFill('ncm523',this)">NCM523</span>
+        <span class="ch" onclick="reqFill('ncm622',this)">NCM622</span>
+        <span class="ch" onclick="reqFill('ncm811',this)">NCM811</span>
+        <span class="ch" onclick="reqFill('nca',this)">NCA</span>
+        <span class="ch" onclick="reqFill('lco',this)">LCO</span>
+        <span class="ch" onclick="reqFill('lmo',this)">LMO</span>
+        <span class="ch" onclick="reqFill('lmfp',this)">LMFP</span>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">🔵 负极材料</label>
+      <div class="tc" id="ct-req-mat2">
+        <span class="ch" onclick="reqFill('graphite',this)">石墨</span>
+        <span class="ch" onclick="reqFill('si',this)">硅 Si</span>
+        <span class="ch" onclick="reqFill('siox',this)">SiO<sub>x</sub></span>
+        <span class="ch" onclick="reqFill('sic',this)">硅碳</span>
+        <span class="ch" onclick="reqFill('lto',this)">LTO</span>
+        <span class="ch" onclick="reqFill('lithium',this)">锂金属</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 计算一：理论比容量 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">1️⃣</span> 理论比容量</div>
+    <div class="fb">
+      <strong>📐 公式：</strong><code>C = (n × F) / (3.6 × M)</code>　即 <code>C = n × 26.801 / M</code>
+    </div>
+    <div class="sym-legend">
+      <div class="sym-row"><code>n</code><span>转移电子数（每分子式单元）</span></div>
+      <div class="sym-row"><code>F</code><span>法拉第常数 = 96485 C/mol = 26.801 Ah/mol</span></div>
+      <div class="sym-row"><code>M</code><span>活性物质摩尔质量 (g/mol)</span></div>
+    </div>
+    <div class="g3" style="margin-top:14px">
+      <div class="fg"><label>材料名称</label><input type="text" id="req-name" value="LiFePO₄" oninput="reqCalcAll()"></div>
+      <div class="fg"><label>转移电子数 n</label><input type="number" id="req-n" value="1" step="0.1" oninput="reqCalcAll()"><div class="ih">每分子式单元</div></div>
+      <div class="fg"><label>摩尔质量 M (g/mol)</label><input type="number" id="req-mol" value="157.76" step="0.01" oninput="reqCalcAll()"></div>
+    </div>
+    <div class="g2" style="margin-top:4px">
+      <div class="fg"><label>利用率 (%)</label><input type="number" id="req-eff" value="90" step="1" oninput="reqCalcAll()"><div class="ih">实际可利用比例</div></div>
+      <div class="fg"><label>真密度 ρ (g/cm³)</label><input type="number" id="req-density" value="3.6" step="0.01" oninput="reqCalcAll()"><div class="ih">用于体积比容量</div></div>
+    </div>
+    <div class="en" id="req-cap-err"></div>
+    <div class="rb" style="margin-top:12px">
+      <div class="rr"><span class="rl">理论比容量</span><span class="rv g" id="req-cap-th">—</span></div>
+      <div class="rr"><span class="rl">实际比容量</span><span class="rv" id="req-cap-ac">—</span></div>
+      <div class="rr"><span class="rl">体积比容量</span><span class="rv" id="req-cap-vol">—</span></div>
+    </div>
+    <div id="req-cap-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-top:10px;word-break:break-word">请先输入参数。</div>
+  </div>
+
+  <!-- 计算二：理论比能量 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">2️⃣</span> 理论比能量</div>
+    <div class="fb">
+      <strong>📐 公式：</strong><code>E = C × V<sub>avg</sub></code>
+    </div>
+    <div class="g2" style="margin-top:14px">
+      <div class="fg"><label>理论比容量 C (mAh/g)</label><input type="number" id="req-e-cap" value="170.42" step="0.1" oninput="reqCalcEnergy()"><div class="ih">由上方计算自动填入</div></div>
+      <div class="fg"><label>平均工作电压 V (V)</label><input type="number" id="req-e-v" value="3.45" step="0.01" oninput="reqCalcEnergy()"><div class="ih">全电池平均放电电压</div></div>
+    </div>
+    <div class="en" id="req-energy-err"></div>
+    <div class="rb" style="margin-top:12px">
+      <div class="rr"><span class="rl">理论比能量</span><span class="rv o" id="req-energy-th">—</span></div>
+      <div class="rr"><span class="rl">实际比能量</span><span class="rv p" id="req-energy-ac">—</span></div>
+      <div class="rr"><span class="rl">体积比能量</span><span class="rv" id="req-energy-vol">—</span></div>
+    </div>
+    <div id="req-energy-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-top:10px;word-break:break-word">请先输入参数。</div>
+  </div>
+
+  <!-- 计算三：理论比功率 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">3️⃣</span> 理论比功率</div>
+    <div class="fb">
+      <strong>📐 方式一：</strong><code>P = E × Rate</code>（放电倍率法）<br>
+      <strong>📐 方式二：</strong><code>P = W / m</code>（功率质量法）
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;margin-bottom:14px">
+      <button class="btn bp req-pw-toggle on" id="req-pw-toggle-rate" onclick="setPwMode('rate')">⏱ 放电倍率</button>
+      <button class="btn bs req-pw-toggle" id="req-pw-toggle-power" onclick="setPwMode('power')">⚡ 功率+质量</button>
+    </div>
+    <div id="req-pw-rate-box">
+      <div class="g3">
+        <div class="fg"><label>理论比能量 E (Wh/kg)</label><input type="number" id="req-p-rate-e" value="588.0" step="0.1" oninput="reqCalcPowerRate()"><div class="ih">由上方计算自动填入</div></div>
+        <div class="fg"><label>放电倍率 (C)</label><input type="number" id="req-p-rate-c" value="1" step="0.1" oninput="reqCalcPowerRate()"><div class="ih">1C=1h放完, 3C=20min</div></div>
+        <div class="fg"><label>利用率 (%)</label><input type="number" id="req-p-rate-eff" value="90" step="1" oninput="reqCalcPowerRate()"></div>
+      </div>
+      <div class="en" id="req-pw-rate-err"></div>
+      <div class="rb" style="margin-top:12px">
+        <div class="rr"><span class="rl">理论比功率</span><span class="rv o" id="req-pw-rate-th">—</span></div>
+        <div class="rr"><span class="rl">实际比功率</span><span class="rv" id="req-pw-rate-ac">—</span></div>
+      </div>
+      <div id="req-pw-rate-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-top:10px;word-break:break-word">请先输入参数。</div>
+    </div>
+    <div id="req-pw-power-box" style="display:none">
+      <div class="g3">
+        <div class="fg"><label>输入功率 W</label><input type="number" id="req-p-pw-w" value="" step="0.1" oninput="reqCalcPowerDirect()"><div class="ih">实际功率值</div></div>
+        <div class="fg"><label>电池质量 m (g)</label><input type="number" id="req-p-pw-m" value="" step="0.1" oninput="reqCalcPowerDirect()"><div class="ih">活性物质质量</div></div>
+        <div class="fg"><label>利用率 (%)</label><input type="number" id="req-p-pw-eff" value="90" step="1" oninput="reqCalcPowerDirect()"></div>
+      </div>
+      <div class="en" id="req-pw-direct-err"></div>
+      <div class="rb" style="margin-top:12px">
+        <div class="rr"><span class="rl">理论比功率</span><span class="rv o" id="req-pw-direct-th">—</span></div>
+        <div class="rr"><span class="rl">实际比功率</span><span class="rv" id="req-pw-direct-ac">—</span></div>
+      </div>
+      <div id="req-pw-direct-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-top:10px;word-break:break-word">请先输入参数。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 模块五：可视化 ==================== -->
+<div class="md" id="m4">
+  <div class="sd">正负极材料比容量与比能量数据可视化，支持叠加自定义计算结果。</div>
+  <div class="cd">
+    <div class="ct"><span class="ic">📈</span> 图表分析</div>
+    <div class="ctb" id="ctabs">
+      <button class="cta on" onclick="sCh(0)">正极比容量对比</button>
+      <button class="cta" onclick="sCh(1)">负极比容量对比</button>
+      <button class="cta" onclick="sCh(2)">正极散点图</button>
+      <button class="cta" onclick="sCh(3)">多维雷达</button>
+    </div>
+    <div class="cht"><canvas id="chart"></canvas></div>
+    <div style="margin-top:16px">
+      <div class="ct" style="font-size:.9rem;margin-bottom:10px"><span class="ic">➕</span> 选择模块添加数据</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn bs" onclick="addToChart('cat')" id="btn-add-cat">🟢 添加正极数据</button>
+        <button class="btn bs" onclick="addToChart('ano')" id="btn-add-ano">🔵 添加负极数据</button>
+        <button class="btn bs" onclick="addToChart('req')" id="btn-add-req">⚡ 添加理论性能计算数据</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn bs" onclick="addToChart('all')" id="btn-add-all">📦 添加全部</button>
+        <button class="btn bs" onclick="resetChart()">🔄 重置</button>
+      </div>
+    </div>
+  </div>
+  <div class="cd">
+    <div class="ct"><span class="ic">📋</span> 已添加数据</div>
+    <div id="calc-list" style="color:var(--tx2);font-size:.85rem;word-break:break-word">暂无数据，请先计算后点击添加。</div>
+  </div>
+</div>
+
+</div>
+
+<!-- ==================== 模块六：参数科普 ==================== -->
+<div class="md" id="m5">
+  <div class="sd">深入理解锂电池四大核心参数：<strong>比容量、工作电压、能量密度、功率密度</strong>——从物理定义到工程应用。</div>
+
+  <div class="qs" style="grid-template-columns:repeat(2,1fr)">
+    <div class="sc"><div class="si">🧪</div><div class="sv" style="font-size:.95rem">比容量</div><div class="sl">mAh/g · 存储电荷的能力</div></div>
+    <div class="sc"><div class="si">⚡</div><div class="sv" style="font-size:.95rem">工作电压</div><div class="sl">V · 驱动电流的势能</div></div>
+    <div class="sc"><div class="si">🔋</div><div class="sv" style="font-size:.95rem">能量密度</div><div class="sl">Wh/kg · 续航的核心</div></div>
+    <div class="sc"><div class="si">🚀</div><div class="sv" style="font-size:.95rem">功率密度</div><div class="sl">W/kg · 爆发力的来源</div></div>
+  </div>
+
+  <!-- 比容量 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">🧪</span> 比容量 <span class="f">Specific Capacity</span></div>
+    <div class="fb">
+      <strong>📐 定义公式：</strong><code>C = (n × F) / (3.6 × M)</code>　单位：<code>mAh/g</code> 或 <code>Ah/kg</code><br>
+      <strong>📐 体积比容量：</strong><code>C_vol = C_mass × ρ</code>　单位：<code>Ah/L</code>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 专业定义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          <strong>比容量（Specific Capacity）</strong>是衡量单位质量（或体积）的活性物质在充放电过程中能够存储或释放的电荷量。<br><br>
+          • <strong>质量比容量</strong>（Gravimetric Capacity）：单位质量活性物质储存的电荷量，单位 mAh/g<br>
+          • <strong>体积比容量</strong>（Volumetric Capacity）：单位体积活性物质储存的电荷量，单位 Ah/L<br>
+          • <strong>理论比容量</strong>：由材料晶体结构和脱锂/嵌锂量决定的极限值<br>
+          • <strong>实际比容量</strong>：受动力学、界面副反应、导电性等影响，通常为理论值的 60%-95%
+        </div>
+      </div>
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 物理意义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          比容量本质上反映了材料的<strong>电化学活性</strong>——即每克材料能"搬运"多少锂离子。<br><br>
+          • <strong>决定因素①</strong>：转移电子数 n — 每个分子式单元能脱/嵌的 Li⁺ 数量<br>
+          • <strong>决定因素②</strong>：摩尔质量 M — 分子越轻，单位质量能搬运的 Li⁺ 越多<br>
+          • <strong>法拉第常数 F</strong> = 96485 C/mol，是电荷量与物质的量之间的桥梁<br>
+          • 比容量是电池容量的<strong>材料级基础</strong>，直接决定电极能装多少电
+        </div>
+      </div>
+    </div>
+    <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#86efac">
+      <div class="ct" style="font-size:.9rem;color:#166534"><span class="ic">💡</span> 应用价值</div>
+      <div style="font-size:.84rem;color:#166534;line-height:2">
+        <strong>① 选材核心指标</strong>：比容量是正负极材料筛选的第一门槛。硅负极（4200 mAh/g）比石墨（372 mAh/g）高出 11 倍，是下一代高容量负极的核心方向。<br>
+        <strong>② N/P 比设计</strong>：正负极比容量之比决定了电池的 N/P（负极容量/正极容量）比，通常设计在 1.05-1.15 以确保安全性。<br>
+        <strong>③ 成本核算</strong>：比容量越高，达到相同电池容量所需的活性物质越少，直接影响材料成本和电池体积。<br>
+        <strong>④ 技术迭代方向</strong>：从 LCO（151 mAh/g）→ NCM811（276 mAh/g）→ 富锂锰基（338 mAh/g），正极比容量提升推动能量密度持续进步。
+      </div>
+    </div>
+  </div>
+
+  <!-- 工作电压 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">⚡</span> 工作电压 <span class="f">Working Voltage</span></div>
+    <div class="fb">
+      <strong>📐 定义公式：</strong><code>V<sub>cell</sub> = V<sub>cathode</sub> − V<sub>anode</sub></code>　单位：<code>V</code>（伏特）<br>
+      <strong>📐 平均放电电压：</strong><code>V<sub>avg</sub> = ∫V·dQ / Q<sub>total</sub></code>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 专业定义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          <strong>工作电压（Working Voltage）</strong>是电池在放电过程中正负极之间的电位差，由正极材料的还原电位与负极材料的氧化电位之差决定。<br><br>
+          • <strong>开路电压（OCV）</strong>：无负载时正负极的热力学平衡电位差<br>
+          • <strong>放电平台电压</strong>：恒流放电过程中电压相对稳定的区间<br>
+          • <strong>平均放电电压 V<sub>avg</sub></strong>：放电曲线上容量加权的平均电压<br>
+          • 正极电位越高、负极电位越低 → 全电池电压越高
+        </div>
+      </div>
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 物理意义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          工作电压本质上反映了正负极材料之间的<strong>电化学势差</strong>——即锂离子在两极间"迁移"的驱动力。<br><br>
+          • <strong>热力学决定</strong>：由材料的费米能级和锂离子的化学势决定<br>
+          • <strong>动力学影响</strong>：极化（欧姆极化 + 浓差极化 + 活化极化）使实际电压低于理论值<br>
+          • <strong>电压窗口</strong>：电解液的稳定电化学窗口限制了可用电压范围<br>
+          • 电压是比能量公式中的<strong>乘法因子</strong>，同比容量同等重要
+        </div>
+      </div>
+    </div>
+    <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#fefce8,#fef9c3);border-color:#fde047">
+      <div class="ct" style="font-size:.9rem;color:#854d0e"><span class="ic">💡</span> 应用价值</div>
+      <div style="font-size:.84rem;color:#854d0e;line-height:2">
+        <strong>① 能量密度杠杆</strong>：电压每提升 0.1V，比能量提升约 3%。LCO（3.9V）比 LFP（3.45V）电压高 13%，在相同比容量下能量密度更高。<br>
+        <strong>② 电解液匹配</strong>：高电压正极（如 5V 级 LMO）需要耐高压电解液，否则电解液分解产气。<br>
+        <strong>③ 系统效率</strong>：更高的电池电压意味着相同功率下电流更小，降低 I²R 损耗，提升系统效率。<br>
+        <strong>④ 安全边界</strong>：过充（电压过高）会导致正极结构坍塌、电解液分解，是热失控的主要诱因之一。
+      </div>
+    </div>
+  </div>
+
+  <!-- 能量密度 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">🔋</span> 能量密度 <span class="f">Energy Density</span></div>
+    <div class="fb">
+      <strong>📐 质量能量密度：</strong><code>E = C × V<sub>avg</sub></code>　单位：<code>Wh/kg</code><br>
+      <strong>📐 体积能量密度：</strong><code>E<sub>vol</sub> = E × ρ<sub>packed</sub></code>　单位：<code>Wh/L</code>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 专业定义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          <strong>能量密度（Energy Density）</strong>是单位质量（或体积）的电池/材料能够存储的总电能，是比容量与工作电压的乘积。<br><br>
+          • <strong>质量能量密度</strong>（Gravimetric Energy Density）：Wh/kg，衡量"有多轻"<br>
+          • <strong>体积能量密度</strong>（Volumetric Energy Density）：Wh/L，衡量"有多小"<br>
+          • <strong>理论能量密度</strong>：基于理论比容量和平均电压计算的极限值<br>
+          • <strong>单体/系统能量密度</strong>：考虑封装、BMS、热管理后的实际值（系统级通常为单体的 60%-80%）
+        </div>
+      </div>
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 物理意义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          能量密度是电池的<strong>核心性能指标</strong>，直接回答"同样重（或同样大）的电池能跑多远"。<br><br>
+          • <strong>Wh = V × Ah</strong>：能量 = 电压 × 电荷量，两者缺一不可<br>
+          • 同时受比容量和电压制约——高容量低电压（如硅负极）或低容量高电压（如 LCO）都不理想<br>
+          • <strong>木桶效应</strong>：实际能量密度受限于正极、负极、电解液、隔膜、集流体中最薄弱的环节<br>
+          • 从材料到系统，能量密度逐级衰减：材料 → 极片 → 电芯 → 模组 → PACK
+        </div>
+      </div>
+    </div>
+    <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd">
+      <div class="ct" style="font-size:.9rem;color:#1e40af"><span class="ic">💡</span> 应用价值</div>
+      <div style="font-size:.84rem;color:#1e40af;line-height:2">
+        <strong>① 续航里程的决定因素</strong>：电动车续航 = 电池包能量 ÷ 百公里电耗。能量密度翻倍 → 续航翻倍（重量不变时）。<br>
+        <strong>② 政策指标</strong>：中国《新能源汽车产业发展规划》要求 2025 年电池单体能量密度 ≥ 300 Wh/kg，系统 ≥ 200 Wh/kg。<br>
+        <strong>③ 成本竞争力</strong>：能量密度越高，单位 Wh 成本越低。NCM811 比 LFP 能量密度高 ~40%，在高端车型中更具成本优势。<br>
+        <strong>④ 技术路线选择</strong>：LFP（安全+低成本）vs NCM（高能量密度）的路线之争，本质是能量密度与安全性的权衡。
+      </div>
+    </div>
+  </div>
+
+  <!-- 功率密度 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">🚀</span> 功率密度 <span class="f">Power Density</span></div>
+    <div class="fb">
+      <strong>📐 放电倍率法：</strong><code>P = E × Rate</code>　单位：<code>W/kg</code> 或 <code>W/L</code><br>
+      <strong>📐 功率质量法：</strong><code>P = W / m</code>　其中 W 为输出功率 (W)，m 为质量 (kg)
+    </div>
+    <div class="g2">
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 专业定义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          <strong>功率密度（Power Density）</strong>是单位质量（或体积）的电池/材料能够输出的最大功率，反映电池的"放电能力"。<br><br>
+          • <strong>质量功率密度</strong>：W/kg，衡量"有多猛"<br>
+          • <strong>体积功率密度</strong>：W/L，衡量"有多紧凑"<br>
+          • <strong>放电倍率（C-rate）</strong>：1C = 1 小时放完额定容量，3C = 20 分钟放完<br>
+          • <strong>比功率 vs 比能量</strong>：两者通常呈反比——高功率电池往往能量密度较低
+        </div>
+      </div>
+      <div>
+        <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 物理意义</div>
+        <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+          功率密度反映的是电池的<strong>动力学性能</strong>——锂离子和电子在电极/电解液界面传输的快慢。<br><br>
+          • <strong>内阻限制</strong>：P_max ≈ V² / (4R_int)，内阻越小，功率越大<br>
+          • <strong>扩散限制</strong>：高倍率下 Li⁺ 在固相中的扩散成为速率控制步骤<br>
+          • <strong>界面反应</strong>：电荷转移阻抗（Rct）和 SEI 膜阻抗影响功率输出<br>
+          • <strong> Ragone 图</strong>：能量密度 vs 功率密度的关系图，是评估电池综合性能的经典工具
+        </div>
+      </div>
+    </div>
+    <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-color:#f9a8d4">
+      <div class="ct" style="font-size:.9rem;color:#9d174d"><span class="ic">💡</span> 应用价值</div>
+      <div style="font-size:.84rem;color:#9d174d;line-height:2">
+        <strong>① 加速性能</strong>：电动车 0-100km/h 加速时间直接取决于电池功率密度。功率密度越高 → 加速越快。<br>
+        <strong>② 快充能力</strong>：快充本质是高功率充电。功率密度高的电池支持更大的充电倍率（如 4C-6C 快充）。<br>
+        <strong>③ 应用场景分化</strong>：储能电池追求高能量密度（Wh/kg），动力电池追求高功率密度（W/kg），两者设计逻辑不同。<br>
+        <strong>④ 材料选择指引</strong>：LTO（功率密度高、能量密度低）适合快充公交；NCM811（能量密度高、功率密度中等）适合长续航乘用车。<br>
+        <strong>⑤ Ragone 图定位</strong>：在能量-功率图中找到合适位置，是电池系统设计的第一步。
+      </div>
+    </div>
+  </div>
+
+  <!-- 四参数关系总结 -->
+  <div class="cd">
+    <div class="ct"><span class="ic">🔗</span> 四参数关系总结</div>
+    <div class="tw"><table>
+      <thead><tr><th>参数</th><th>符号</th><th>单位</th><th>核心决定因素</th><th>对应需求</th></tr></thead>
+      <tbody>
+        <tr><td><strong>比容量</strong></td><td>C</td><td>mAh/g</td><td>转移电子数 n、摩尔质量 M</td><td>能装多少电</td></tr>
+        <tr><td><strong>工作电压</strong></td><td>V</td><td>V</td><td>正负极电位差</td><td>驱动力多大</td></tr>
+        <tr><td><strong>能量密度</strong></td><td>E</td><td>Wh/kg</td><td>C × V（比容量 × 电压）</td><td>续航多远</td></tr>
+        <tr><td><strong>功率密度</strong></td><td>P</td><td>W/kg</td><td>内阻、扩散、界面动力学</td><td>加速多快</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fb" style="margin-top:14px">
+      <strong>📐 核心关系：</strong><code>E = C × V</code>（能量密度 = 比容量 × 电压）<br>
+      <strong>📐 功率-能量：</strong><code>P = E × Rate</code>（功率密度 = 能量密度 × 放电倍率）<br>
+      <strong>📐 Ragone 关系：</strong>高能量密度与高功率密度通常<strong>不可兼得</strong>，需根据应用场景权衡
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 模块七：电池整包计算 ==================== -->
+<div class="md" id="m6">
+  <div class="sd"><strong>电池整包计算</strong>从材料级进入电芯级：计算容量密度、能量密度，查阅主流电池参数，了解整包设计核心知识。</div>
+
+  <!-- 子导航 -->
+  <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn bp pk-sub on" onclick="pkSw(0,this)">📐 容量密度</button>
+    <button class="btn bs pk-sub" onclick="pkSw(1,this)">⚡ 能量密度</button>
+    <button class="btn bs pk-sub" onclick="pkSw(2,this)">📊 电池参数库</button>
+    <button class="btn bs pk-sub" onclick="pkSw(3,this)">📖 整包科普</button>
+  </div>
+
+  <!-- ===== 子模块 A：容量密度 ===== -->
+  <div class="pk-page on" id="pk0">
+    <div class="qs">
+      <div class="sc"><div class="si">🔋</div><div class="sv" id="s-pk-cap">—</div><div class="sl">电池容量</div></div>
+      <div class="sc"><div class="si">📦</div><div class="sv" id="s-pk-vol">—</div><div class="sl">电池体积</div></div>
+      <div class="sc"><div class="si">⚖️</div><div class="sv" id="s-pk-mass">—</div><div class="sl">电池质量</div></div>
+      <div class="sc"><div class="si">📐</div><div class="sv" id="s-pk-vcd">—</div><div class="sl">容量密度</div></div>
+    </div>
+    <div class="g2">
+      <div class="cd">
+        <div class="ct"><span class="ic">🔋</span> 电池参数输入</div>
+        <div style="margin-bottom:14px"><label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">快速模板</label>
+          <div class="tc" id="pk-tmpl">
+            <span class="ch" onclick="pkFill('18650')">18650 圆柱</span>
+            <span class="ch" onclick="pkFill('21700')">21700 圆柱</span>
+            <span class="ch" onclick="pkFill('4680')">4680 圆柱</span>
+            <span class="ch" onclick="pkFill('pouch')">软包电池</span>
+            <span class="ch" onclick="pkFill('prism')">方形电池</span>
+          </div>
+        </div>
+        <div class="fg"><label>电池类型</label><select id="pk-ty" onchange="pkTy()"><option value="cyl">圆柱形</option><option value="prs">方形</option><option value="pch">软包</option></select></div>
+        <div id="pk-cyl"><div class="g2"><div class="fg"><label>直径 (mm)</label><input type="number" id="pk-dia" value="18" step="0.1" oninput="pkCalc()"></div><div class="fg"><label>高度 (mm)</label><input type="number" id="pk-h" value="65" step="0.1" oninput="pkCalc()"></div></div></div>
+        <div id="pk-prs" style="display:none"><div class="g3"><div class="fg"><label>长 (mm)</label><input type="number" id="pk-l" value="100" step="0.1" oninput="pkCalc()"></div><div class="fg"><label>宽 (mm)</label><input type="number" id="pk-w" value="50" step="0.1" oninput="pkCalc()"></div><div class="fg"><label>高 (mm)</label><input type="number" id="pk-ph" value="20" step="0.1" oninput="pkCalc()"></div></div></div>
+        <div id="pk-pch" style="display:none"><div class="g3"><div class="fg"><label>长 (mm)</label><input type="number" id="pk-pl" value="130" step="0.1" oninput="pkCalc()"></div><div class="fg"><label>宽 (mm)</label><input type="number" id="pk-pw" value="65" step="0.1" oninput="pkCalc()"></div><div class="fg"><label>厚度 (mm)</label><input type="number" id="pk-pt" value="7" step="0.1" oninput="pkCalc()"></div></div></div>
+        <div class="g2">
+          <div class="fg"><label>电池容量</label><div style="display:flex;gap:6px"><input type="number" id="pk-cap" value="2.6" step="0.01" oninput="pkCalc()" style="flex:1"><select id="pk-cu" onchange="pkCalc()" style="width:80px"><option value="Ah">Ah</option><option value="mAh">mAh</option></select></div></div>
+          <div class="fg"><label>电池质量</label><div style="display:flex;gap:6px"><input type="number" id="pk-m" value="0.048" step="0.001" oninput="pkCalc()" style="flex:1"><select id="pk-mu" onchange="pkCalc()" style="width:80px"><option value="kg">kg</option><option value="g">g</option></select></div></div>
+        </div>
+        <div class="fb">容量密度(体积) = 容量(Ah) ÷ 体积(L) → <code>Ah/L</code><br>容量密度(质量) = 容量(Ah) ÷ 质量(kg) → <code>Ah/kg</code></div>
+      </div>
+      <div class="cd">
+        <div class="ct"><span class="ic">📊</span> 计算结果</div>
+        <div class="rb">
+          <div class="rr"><span class="rl">电池容量</span><span class="rv" id="pk-r-cap">—</span></div>
+          <div class="rr"><span class="rl">电池体积</span><span class="rv" id="pk-r-vol">—</span></div>
+          <div class="rr"><span class="rl">电池质量</span><span class="rv" id="pk-r-mass">—</span></div>
+          <div class="rr"><span class="rl">体积容量密度</span><span class="rv g" id="pk-r-vcd">—</span></div>
+          <div class="rr"><span class="rl">质量容量密度</span><span class="rv p" id="pk-r-mcd">—</span></div>
+        </div>
+        <div class="en" id="pk-err"></div>
+        <div style="margin-top:16px">
+          <div class="ct" style="font-size:.9rem"><span class="ic">📏</span> 参考数据</div>
+          <div class="tw"><table><thead><tr><th>电池型号</th><th>容量</th><th>质量</th><th>体积容量密度</th></tr></thead><tbody>
+            <tr><td>18650 (NCA)</td><td>3.5 Ah</td><td>48g</td><td>~202 Ah/L</td></tr>
+            <tr><td>21700 (NCA)</td><td>5.0 Ah</td><td>70g</td><td>~211 Ah/L</td></tr>
+            <tr><td>方形 LFP</td><td>100 Ah</td><td>2.0 kg</td><td>~143 Ah/L</td></tr>
+            <tr><td>软包 NCM</td><td>50 Ah</td><td>0.8 kg</td><td>~165 Ah/L</td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 子模块 B：能量密度 ===== -->
+  <div class="pk-page" id="pk1">
+    <div class="qs">
+      <div class="sc"><div class="si">⚡</div><div class="sv" id="s-pk-e">—</div><div class="sl">总能量</div></div>
+      <div class="sc"><div class="si">🏋️</div><div class="sv" id="s-pk-med">—</div><div class="sl">质量能量密度</div></div>
+      <div class="sc"><div class="si">📦</div><div class="sv" id="s-pk-ved">—</div><div class="sl">体积能量密度</div></div>
+      <div class="sc"><div class="si">🔌</div><div class="sv" id="s-pk-uv">—</div><div class="sl">平台电压</div></div>
+    </div>
+    <div class="g2">
+      <div class="cd">
+        <div class="ct"><span class="ic">⚡</span> 能量密度参数输入</div>
+        <div style="margin-bottom:14px"><label style="font-size:.78rem;color:var(--tx2);margin-bottom:6px;display:block;font-weight:600">快速模板</label>
+          <div class="tc" id="pk-etmpl">
+            <span class="ch" onclick="pkEFill('lfp')">磷酸铁锂</span>
+            <span class="ch" onclick="pkEFill('ncm523')">NCM523</span>
+            <span class="ch" onclick="pkEFill('ncm811')">NCM811</span>
+            <span class="ch" onclick="pkEFill('nca')">NCA 三元</span>
+            <span class="ch" onclick="pkEFill('lco')">钴酸锂 LCO</span>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label>电池容量</label><div style="display:flex;gap:6px"><input type="number" id="pk-e-cap" value="5" step="0.01" oninput="pkECalc()" style="flex:1"><select id="pk-e-cu" onchange="pkECalc()" style="width:80px"><option value="Ah">Ah</option><option value="mAh">mAh</option></select></div></div>
+          <div class="fg"><label>平台电压 (V)</label><input type="number" id="pk-e-v" value="3.6" step="0.01" oninput="pkECalc()"><div class="ih">LFP≈3.2V, NCM≈3.6-3.7V</div></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label>电池质量</label><div style="display:flex;gap:6px"><input type="number" id="pk-e-m" value="0.07" step="0.001" oninput="pkECalc()" style="flex:1"><select id="pk-e-mu" onchange="pkECalc()" style="width:80px"><option value="kg">kg</option><option value="g">g</option></select></div></div>
+          <div class="fg"><label>电池类型</label><select id="pk-e-ty" onchange="pkETy()"><option value="cyl">圆柱形</option><option value="prs">方形</option><option value="pch">软包</option></select></div>
+        </div>
+        <div id="pk-e-cyl"><div class="g2"><div class="fg"><label>直径 (mm)</label><input type="number" id="pk-e-dia" value="21" step="0.1" oninput="pkECalc()"></div><div class="fg"><label>高度 (mm)</label><input type="number" id="pk-e-h" value="70" step="0.1" oninput="pkECalc()"></div></div></div>
+        <div id="pk-e-prs" style="display:none"><div class="g3"><div class="fg"><label>长 (mm)</label><input type="number" id="pk-e-l" value="148" step="0.1" oninput="pkECalc()"></div><div class="fg"><label>宽 (mm)</label><input type="number" id="pk-e-w" value="91" step="0.1" oninput="pkECalc()"></div><div class="fg"><label>高 (mm)</label><input type="number" id="pk-e-ph" value="26" step="0.1" oninput="pkECalc()"></div></div></div>
+        <div id="pk-e-pch" style="display:none"><div class="g3"><div class="fg"><label>长 (mm)</label><input type="number" id="pk-e-pl" value="150" step="0.1" oninput="pkECalc()"></div><div class="fg"><label>宽 (mm)</label><input type="number" id="pk-e-pw" value="80" step="0.1" oninput="pkECalc()"></div><div class="fg"><label>厚度 (mm)</label><input type="number" id="pk-e-pt" value="8" step="0.1" oninput="pkECalc()"></div></div></div>
+        <div class="fb">总能量(Wh) = 容量(Ah) × 平台电压(V)<br>质量能量密度 = 总能量 ÷ 质量 → <code>Wh/kg</code><br>体积能量密度 = 总能量 ÷ 体积 → <code>Wh/L</code></div>
+      </div>
+      <div class="cd">
+        <div class="ct"><span class="ic">📊</span> 计算结果</div>
+        <div class="rb">
+          <div class="rr"><span class="rl">总储能能量</span><span class="rv" id="pk-r-e">—</span></div>
+          <div class="rr"><span class="rl">质量能量密度</span><span class="rv g" id="pk-r-med">—</span></div>
+          <div class="rr"><span class="rl">体积能量密度</span><span class="rv o" id="pk-r-ved">—</span></div>
+          <div class="rr"><span class="rl">容量密度(体积)</span><span class="rv p" id="pk-r-cv">—</span></div>
+          <div class="rr"><span class="rl">容量密度(质量)</span><span class="rv" id="pk-r-cm">—</span></div>
+        </div>
+        <div class="en" id="pk-e-err"></div>
+        <div style="margin-top:16px">
+          <div class="ct" style="font-size:.9rem"><span class="ic">📏</span> 常见正极材料理论比容量</div>
+          <div class="tw"><table><thead><tr><th>正极材料</th><th>理论比容量</th><th>平台电压</th><th>实际比容量</th></tr></thead><tbody>
+            <tr><td>LFP (磷酸铁锂)</td><td>170 mAh/g</td><td>3.2V</td><td>140-160 mAh/g</td></tr>
+            <tr><td>NCM523</td><td>278 mAh/g</td><td>3.6V</td><td>150-170 mAh/g</td></tr>
+            <tr><td>NCM811</td><td>276 mAh/g</td><td>3.7V</td><td>180-210 mAh/g</td></tr>
+            <tr><td>NCA</td><td>279 mAh/g</td><td>3.7V</td><td>180-200 mAh/g</td></tr>
+            <tr><td>LCO (钴酸锂)</td><td>274 mAh/g</td><td>3.9V</td><td>140-160 mAh/g</td></tr>
+            <tr><td>负极：石墨</td><td>372 mAh/g</td><td>0.1V</td><td>330-360 mAh/g</td></tr>
+            <tr><td>负极：硅碳</td><td>~4200 (Si)</td><td>0.2V</td><td>450-600 mAh/g</td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 子模块 C：电池参数库 ===== -->
+  <div class="pk-page" id="pk2">
+    <div class="sd">主流锂离子电池体系的容量密度与能量密度参数，涵盖圆柱、方形、软包三种形态。数据来源于行业公开资料及头部电池厂商产品规格。</div>
+    <div class="cd">
+      <div class="ct"><span class="ic">🔋</span> 主流锂离子电池参数对比</div>
+      <div class="tw"><table><thead><tr><th>电池类型</th><th>化学体系</th><th>形态</th><th>容量密度</th><th>质量能量密度</th><th>体积能量密度</th><th>平台电压</th><th>特点</th></tr></thead><tbody>
+        <tr><td><strong>18650</strong></td><td><span class="bd bb">NCA</span></td><td>圆柱</td><td>202 Ah/L</td><td>248 Wh/kg</td><td>730 Wh/L</td><td>3.6V</td><td>特斯拉早期车型</td></tr>
+        <tr><td><strong>21700</strong></td><td><span class="bd bb">NCA/NCM811</span></td><td>圆柱</td><td>211 Ah/L</td><td>260-300 Wh/kg</td><td>780-850 Wh/L</td><td>3.6-3.7V</td><td>松下/三星SDI，主流EV</td></tr>
+        <tr><td><strong>4680</strong></td><td><span class="bd bb">NCA/NCM</span></td><td>圆柱(大)</td><td>~220 Ah/L</td><td>270-300 Wh/kg</td><td>800-900 Wh/L</td><td>3.6-3.7V</td><td>特斯拉新型，降本增效</td></tr>
+        <tr><td><strong>方形 LFP</strong></td><td><span class="bd bg2">LFP</span></td><td>方形</td><td>120-160 Ah/L</td><td>140-180 Wh/kg</td><td>250-350 Wh/L</td><td>3.2V</td><td>比亚迪刀片、宁德神行</td></tr>
+        <tr><td><strong>方形 NCM</strong></td><td><span class="bd bo">NCM811</span></td><td>方形</td><td>180-230 Ah/L</td><td>230-280 Wh/kg</td><td>500-650 Wh/L</td><td>3.6-3.7V</td><td>宁德时代麒麟电池</td></tr>
+        <tr><td><strong>软包 NCM</strong></td><td><span class="bd bo">NCM622/811</span></td><td>软包</td><td>160-200 Ah/L</td><td>240-290 Wh/kg</td><td>550-700 Wh/L</td><td>3.6-3.7V</td><td>LG新能源、SK On</td></tr>
+        <tr><td><strong>软包 LFP</strong></td><td><span class="bd bg2">LFP</span></td><td>软包</td><td>110-140 Ah/L</td><td>130-165 Wh/kg</td><td>230-300 Wh/L</td><td>3.2V</td><td>储能系统常用</td></tr>
+        <tr><td><strong>LCO 方形</strong></td><td><span class="bd bp2">LCO</span></td><td>方形</td><td>170-210 Ah/L</td><td>150-200 Wh/kg</td><td>400-550 Wh/L</td><td>3.8-3.9V</td><td>消费电子（手机、笔记本）</td></tr>
+        <tr><td><strong>固态电池(预)</strong></td><td><span class="bd bc">固态电解质</span></td><td>—</td><td>—</td><td>400-500 Wh/kg</td><td>—</td><td>3.7-4.5V</td><td>丰田/三星SDI研发中</td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="g2">
+      <div class="cd">
+        <div class="ct"><span class="ic">🧪</span> 关键设计参数</div>
+        <div class="tw"><table><thead><tr><th>参数</th><th>符号</th><th>典型范围</th><th>说明</th></tr></thead><tbody>
+          <tr><td>活性物质占比</td><td>K</td><td>0.40-0.55</td><td>正极活性物质占电芯总质量比</td></tr>
+          <tr><td>N/P 比</td><td>N/P</td><td>1.05-1.30</td><td>负极容量/正极容量，影响安全与寿命</td></tr>
+          <tr><td>正极面密度</td><td>—</td><td>15-30 mg/cm²</td><td>影响能量密度与倍率性能</td></tr>
+          <tr><td>压实密度</td><td>—</td><td>3.0-3.6 g/cm³</td><td>NCM正极压实密度</td></tr>
+          <tr><td>电解液注液系数</td><td>—</td><td>1.5-2.5 g/Ah</td><td>每Ah容量所需电解液量</td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="cd">
+        <div class="ct"><span class="ic">🔮</span> 理论能量密度极限</div>
+        <div class="tw"><table><thead><tr><th>体系组合</th><th>理论能量密度</th><th>现状</th></tr></thead><tbody>
+          <tr><td>LFP / 石墨</td><td>~180 Wh/kg</td><td>已接近理论上限</td></tr>
+          <tr><td>NCM811 / 石墨</td><td>~350 Wh/kg</td><td>实际已达 280-300</td></tr>
+          <tr><td>NCM811 / 硅碳</td><td>~400 Wh/kg</td><td>产业化进行中</td></tr>
+          <tr><td>富锂 / 硅碳</td><td>~500 Wh/kg</td><td>实验室阶段</td></tr>
+          <tr><td>硫正极 / 锂金属</td><td>~600 Wh/kg</td><td>锂硫电池，研发中</td></tr>
+          <tr><td>LLO+锂金属+固态</td><td>~1000 Wh/kg</td><td>终极目标</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 子模块 D：整包科普 ===== -->
+  <div class="pk-page" id="pk3">
+    <div class="sd">从电芯到电池包的完整知识体系：<strong>PACK 结构、成组设计、热管理、BMS、安全设计</strong>——理解电池如何从材料变成产品。</div>
+
+    <div class="qs" style="grid-template-columns:repeat(2,1fr)">
+      <div class="sc"><div class="si">🔧</div><div class="sv" style="font-size:.95rem">PACK 结构</div><div class="sl">电芯→模组→电池包</div></div>
+      <div class="sc"><div class="si">🌡️</div><div class="sv" style="font-size:.95rem">热管理</div><div class="sl">液冷/风冷/相变</div></div>
+      <div class="sc"><div class="si">🧠</div><div class="sv" style="font-size:.95rem">BMS</div><div class="sl">电池管理系统</div></div>
+      <div class="sc"><div class="si">🛡️</div><div class="sv" style="font-size:.95rem">安全设计</div><div class="sl">热失控防护</div></div>
+    </div>
+
+    <!-- 电动汽车示例 -->
+    <div class="cd" style="border-color:#86efac;background:linear-gradient(135deg,#f0fdf4,#ecfdf5)">
+      <div class="ct" style="color:#166534"><span class="ic">🚗</span> 以电动汽车为例 <span class="f">从材料到整车的能量链条</span></div>
+      <div style="font-size:.85rem;color:var(--tx2);line-height:2;margin-bottom:16px">
+        理解电池包的最好方式，是跟着一辆电动汽车走完全链路。以 <strong>特斯拉 Model 3 长续航版</strong>（电池容量 78.4 kWh）为例：
+      </div>
+      <div class="g2">
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 18px">
+          <div class="ct" style="font-size:.88rem;margin-bottom:10px"><span class="ic">①</span> 材料级 → 电芯级</div>
+          <div style="font-size:.82rem;color:var(--tx2);line-height:2.1">
+            <strong>正极</strong>：NCM811（高镍三元），理论比容量 276 mAh/g，实际 ~200 mAh/g，平均电压 3.7V<br>
+            <strong>负极</strong>：人造石墨 + 5% 硅碳，实际比容量 ~370 mAh/g<br>
+            <strong>电芯</strong>：采用 21700 圆柱电芯，单颗容量 ~4.65Ah，标称电压 3.7V<br>
+            <strong>单颗能量</strong>：4.65Ah × 3.7V = <strong>17.2 Wh</strong>
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 18px">
+          <div class="ct" style="font-size:.88rem;margin-bottom:10px"><span class="ic">②</span> 电芯级 → 模组级</div>
+          <div style="font-size:.82rem;color:var(--tx2);line-height:2.1">
+            <strong>连接方式</strong>：46 颗电芯并联成一组（46<sub>P</sub>），再串联<br>
+            <strong>模组电压</strong>：3.7V（单并联组）<br>
+            <strong>模组容量</strong>：46 × 4.65Ah = <strong>213.9 Ah</strong><br>
+            <strong>模组能量</strong>：213.9Ah × 3.7V = <strong>~791 Wh</strong>
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 18px">
+          <div class="ct" style="font-size:.88rem;margin-bottom:10px"><span class="ic">③</span> 模组级 → 电池包</div>
+          <div style="font-size:.82rem;color:var(--tx2);line-height:2.1">
+            <strong>串联组数</strong>：96 串（96<sub>S</sub>46<sub>P</sub>），总电压 96 × 3.7V = <strong>355.2V</strong><br>
+            <strong>总容量</strong>：213.9Ah，总能量 96 × 791Wh = <strong>~75.9 kWh</strong>（标称 78.4 kWh）<br>
+            <strong>PACK 组件</strong>：BMS 主控、液冷板、高压盒、结构壳体<br>
+            <strong>成组效率</strong>：~82%（CTP 架构），包总重 ~480 kg
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 18px">
+          <div class="ct" style="font-size:.88rem;margin-bottom:10px"><span class="ic">④</span> 电池包 → 整车</div>
+          <div style="font-size:.82rem;color:var(--tx2);line-height:2.1">
+            <strong>可用能量</strong>：~70.5 kWh（SOC 窗口 5%-95%，可用 ~90%）<br>
+            <strong>CLTC 续航</strong>：713 km<br>
+            <strong>百公里电耗</strong>：70.5kWh ÷ 713km × 100 = <strong>~9.9 kWh/100km</strong><br>
+            <strong>系统能量密度</strong>：78.4kWh ÷ 480kg = <strong>~163 Wh/kg</strong>（包级）
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px">
+        <div class="ct" style="font-size:.85rem;margin-bottom:8px"><span class="ic">🔄</span> 完整能量传递链</div>
+        <div style="font-size:.82rem;color:var(--tx2);line-height:2.1;text-align:center">
+          <span style="color:var(--gn);font-weight:700">NCM811 材料</span> →
+          <span style="color:var(--ac);font-weight:700">21700 电芯 (17.2Wh)</span> →
+          <span style="color:var(--og);font-weight:700">46<sub>P</sub> 模组 (791Wh)</span> →
+          <span style="color:var(--pu);font-weight:700">96<sub>S</sub> 电池包 (78.4kWh)</span> →
+          <span style="color:#dc2626;font-weight:700">整车续航 713km</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PACK 结构 -->
+    <div class="cd">
+      <div class="ct"><span class="ic">🔧</span> 电池包（PACK）结构</div>
+      <div class="fb">
+        <strong>📐 成组逻辑：</strong>电芯(Cell) → 模组(Module) → 电池包(Pack) → 整车(Vehicle)<br>
+        <strong>📐 CTP/CTC：</strong>Cell-to-Pack / Cell-to-Chassis，跳过模组直接集成
+      </div>
+      <div class="g2">
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 传统三级架构</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>电芯（Cell）</strong>→ 最小储能单元，分为圆柱、方形、软包三种形态<br>
+            <strong>模组（Module）</strong>→ 多个电芯串/并联组成，带结构件和汇流排<br>
+            <strong>电池包（Pack）</strong>→ 多个模组 + BMS + 热管理 + 高压盒 + 结构件<br>
+            <strong>成组效率</strong>：传统架构 PACK 质量成组效率约 65%-75%<br>
+            <strong>空间利用率</strong>：传统架构约 40%-55%
+          </div>
+        </div>
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 新一代架构</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>CTP（Cell-to-Pack）</strong>→ 跳过模组，电芯直接入包<br>
+            代表：宁德时代麒麟电池、比亚迪刀片电池<br>
+            成组效率提升至 80%-90%，空间利用率 60%-72%<br>
+            <strong>CTC（Cell-to-Chassis）</strong>→ 电芯直接集成到底盘<br>
+            代表：特斯拉结构性电池、零跑CTC<br>
+            进一步减少零件数，降低重量和成本<br>
+            <strong>CTB（Cell-to-Body）</strong>→ 电池与车身一体化
+          </div>
+        </div>
+      </div>
+      <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#86efac">
+        <div class="ct" style="font-size:.9rem;color:#166534"><span class="ic">💡</span> 成组效率对比</div>
+        <div class="tw"><table><thead><tr><th>架构</th><th>质量成组效率</th><th>空间利用率</th><th>代表产品</th></tr></thead><tbody>
+          <tr><td>传统三级</td><td>65-75%</td><td>40-55%</td><td>早期EV</td></tr>
+          <tr><td>CTP 2.0</td><td>75-85%</td><td>55-65%</td><td>宁德麒麟</td></tr>
+          <tr><td>CTP 3.0</td><td>80-90%</td><td>60-72%</td><td>宁德神行</td></tr>
+          <tr><td>刀片电池</td><td>~85%</td><td>~60%</td><td>比亚迪</td></tr>
+          <tr><td>CTC</td><td>85-92%</td><td>65-75%</td><td>特斯拉结构性</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+
+    <!-- 热管理 -->
+    <div class="cd">
+      <div class="ct"><span class="ic">🌡️</span> 热管理系统</div>
+      <div class="g2">
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 为什么需要热管理</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            锂电池最佳工作温度：<strong>25-40°C</strong><br>
+            温差控制：<strong><5°C</strong>（单体间）<br>
+            • <strong>高温</strong>（>45°C）→ 加速副反应、SEI增长、容量衰减<br>
+            • <strong>低温</strong>（<0°C）→ 锂析出、容量骤降、安全隐患<br>
+            • <strong>温差大</strong>→ 一致性恶化、寿命缩短<br>
+            热管理消耗约 <strong>5-15%</strong> 的电池能量
+          </div>
+        </div>
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 四种热管理方案</div>
+          <div class="tw"><table><thead><tr><th>方案</th><th>散热效率</th><th>成本</th><th>应用</th></tr></thead><tbody>
+            <tr><td><strong>自然冷却</strong></td><td>低</td><td>最低</td><td>低速车、储能</td></tr>
+            <tr><td><strong>风冷</strong></td><td>中低</td><td>低</td><td>早期EV、大巴</td></tr>
+            <tr><td><strong>液冷</strong></td><td>高</td><td>中高</td><td>主流EV（特斯拉、比亚迪）</td></tr>
+            <tr><td><strong>直冷（冷媒）</strong></td><td>最高</td><td>高</td><td>高端EV（大众MEB）</td></tr>
+            <tr><td><strong>相变材料</strong></td><td>中</td><td>中</td><td>辅助散热、被动热管理</td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BMS -->
+    <div class="cd">
+      <div class="ct"><span class="ic">🧠</span> 电池管理系统（BMS）</div>
+      <div class="g2">
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> BMS 核心功能</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>① 状态估算</strong><br>
+            • SOC（荷电状态）：剩余电量百分比<br>
+            • SOH（健康状态）：电池老化程度<br>
+            • SOP（功率状态）：可输出最大功率<br>
+            • SOE（能量状态）：剩余可用能量<br><br>
+            <strong>② 安全保护</strong><br>
+            • 过充/过放保护（电压上下限）<br>
+            • 过流/短路保护<br>
+            • 温度保护（高温断开、低温限流）<br>
+            • 绝缘监测
+          </div>
+        </div>
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 均衡管理</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>被动均衡</strong>：电阻放电消耗高电量电芯<br>
+            → 简单便宜，但浪费能量（效率<50%）<br>
+            → 适合 LFP 等一致性好的体系<br><br>
+            <strong>主动均衡</strong>：能量从高电芯转移到低电芯<br>
+            → 效率高（>85%），但电路复杂成本高<br>
+            → 适合高价值、长寿命场景<br><br>
+            <strong>均衡电流</strong>：被动 ~50-200mA，主动 1-5A<br>
+            <strong>关键指标</strong>：SOC 一致性 <strong><3%</strong>
+          </div>
+        </div>
+      </div>
+      <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd">
+        <div class="ct" style="font-size:.9rem;color:#1e40af"><span class="ic">💡</span> BMS 技术趋势</div>
+        <div style="font-size:.84rem;color:#1e40af;line-height:2">
+          <strong>① 云端 BMS</strong>：上传数据到云端，用 AI 算法更精确估算 SOC/SOH<br>
+          <strong>② 无线 BMS</strong>：取消通信线束，减重降本（TI、ADI 方案）<br>
+          <strong>③ 功能安全</strong>：ASIL-D 等级，满足 ISO 26262 要求<br>
+          <strong>④ OTA 升级</strong>：远程更新 BMS 策略，优化充放电曲线
+        </div>
+      </div>
+    </div>
+
+    <!-- 安全设计 -->
+    <div class="cd">
+      <div class="ct"><span class="ic">🛡️</span> 安全设计与热失控防护</div>
+      <div class="g2">
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">📖</span> 热失控机理</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>热失控（Thermal Runaway）</strong>：电池温度不可控上升的链式反应<br><br>
+            <strong>触发路径</strong>：<br>
+            • 内短路 → 局部过热 → SEI分解 → 负极与电解液反应<br>
+            • 外短路 → 大电流 → 焦耳热<br>
+            • 过充 → 正极释氧 → 电解液燃烧<br>
+            • 机械滥用 → 隔膜破损 → 内短路<br><br>
+            <strong>热失控温度链</strong>：<br>
+            80°C SEI分解 → 120°C 隔膜闭孔 → 150°C 隔膜破裂 → 200°C 正极释氧 → >300°C 电解液燃烧
+          </div>
+        </div>
+        <div>
+          <div class="ct" style="font-size:.9rem"><span class="ic">🔬</span> 多层防护体系</div>
+          <div style="font-size:.85rem;color:var(--tx2);line-height:2;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd)">
+            <strong>第一层：材料级</strong><br>
+            • 正极包覆（Al<sub>2</sub>O<sub>3</sub>、LiNbO<sub>3</sub>）<br>
+            • 电解液添加剂（VC、FEC、阻燃剂）<br>
+            • 陶瓷涂覆隔膜<br><br>
+            <strong>第二层：电芯级</strong><br>
+            • PTC 正温度系数元件<br>
+            • CID 防爆阀<br>
+            • 安全涂层集流体<br><br>
+            <strong>第三层：系统级</strong><br>
+            • 气凝胶隔热垫<br>
+            • 泄压阀 + 排气通道<br>
+            • 液冷板 + 消防喷淋<br>
+            • 整车级热扩散预警（5分钟预警时间）
+          </div>
+        </div>
+      </div>
+      <div class="cd" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-color:#f9a8d4">
+        <div class="ct" style="font-size:.9rem;color:#9d174d"><span class="ic">💡</span> 安全标准与测试</div>
+        <div style="font-size:.84rem;color:#9d174d;line-height:2">
+          <strong>① 国标 GB 38031</strong>：要求热扩散后 5 分钟内不起火不爆炸，为乘员留出逃生时间<br>
+          <strong>② 针刺测试</strong>：模拟内短路，LFP 通过率高，NCM 需额外防护<br>
+          <strong>③ 热扩散测试</strong>：加热单个电芯至热失控，观察是否蔓延至相邻电芯<br>
+          <strong>④ IP67 防护</strong>：电池包需通过 1m 深水浸泡 30 分钟测试<br>
+          <strong>⑤ 挤压/跌落/振动</strong>：模拟交通事故中的机械滥用场景
+        </div>
+      </div>
+    </div>
+
+    <!-- 成组设计关键公式 -->
+    <div class="cd">
+      <div class="ct"><span class="ic">📐</span> 成组设计关键公式</div>
+      <div class="fb">
+        <strong>串并联设计：</strong><code>V<sub>pack</sub> = V<sub>cell</sub> × N<sub>series</sub></code>，<code>Q<sub>pack</sub> = Q<sub>cell</sub> × N<sub>parallel</sub></code><br>
+        <strong>成组效率：</strong><code>η = E<sub>pack</sub> / (n × E<sub>cell</sub>)</code>，即包能量 / 电芯总能量<br>
+        <strong>N/P 比：</strong><code>N/P = Q_anode / Q_cathode</code>，通常 1.05-1.30<br>
+        <strong>能量估算：</strong><code>E<sub>pack</sub> ≈ Q<sub>cell</sub> × V<sub>avg</sub> × N<sub>s</sub> × N<sub>p</sub> × η</code>
+      </div>
+      <div class="g3" style="margin-top:14px">
+        <div class="fg"><label>电芯容量 (Ah)</label><input type="number" id="pk-pk-cap" value="100" step="1" oninput="pkPackCalc()"></div>
+        <div class="fg"><label>电芯电压 (V)</label><input type="number" id="pk-pk-v" value="3.2" step="0.01" oninput="pkPackCalc()"></div>
+        <div class="fg"><label>串联数 Ns</label><input type="number" id="pk-pk-ns" value="96" step="1" oninput="pkPackCalc()"></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>并联数 Np</label><input type="number" id="pk-pk-np" value="2" step="1" oninput="pkPackCalc()"></div>
+        <div class="fg"><label>成组效率 η (%)</label><input type="number" id="pk-pk-eff" value="85" step="1" oninput="pkPackCalc()"></div>
+        <div class="fg"><label>电芯质量 (kg)</label><input type="number" id="pk-pk-cm" value="2.0" step="0.1" oninput="pkPackCalc()"></div>
+      </div>
+      <div class="rb" style="margin-top:12px">
+        <div class="rr"><span class="rl">电池包电压</span><span class="rv g" id="pk-pk-pv">—</span></div>
+        <div class="rr"><span class="rl">电池包容量</span><span class="rv" id="pk-pk-pq">—</span></div>
+        <div class="rr"><span class="rl">电池包能量</span><span class="rv o" id="pk-pk-pe">—</span></div>
+        <div class="rr"><span class="rl">电池包质量</span><span class="rv" id="pk-pk-pm">—</span></div>
+        <div class="rr"><span class="rl">系统能量密度</span><span class="rv p" id="pk-pk-sed">—</span></div>
+      </div>
+      <div id="pk-pack-process" style="font-size:.8rem;color:var(--tx2);line-height:1.9;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--bd);margin-top:10px;word-break:break-word">请先输入参数。</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Update Log Modal -->
+<div class="upd-overlay" id="updOverlay">
+  <div class="upd-modal">
+    <div class="upd-header">
+      <div class="upd-icon">🔋</div>
+      <div class="upd-title">应用更新日志</div>
+      <div class="upd-ver">v1.01.5</div>
+    </div>
+    <div class="upd-body">
+      <div class="upd-section">
+        <div class="upd-tag" style="background:var(--rdl);color:var(--rd)">🔧 修复</div>
+        <div class="upd-item">修复<strong>石墨嵌锂量</strong>参数错误（y: 6→1，LiC₆ 中每个 C₆ 嵌入 1 个 Li）</div>
+        <div class="upd-item">修复<strong>LTO 摩尔质量</strong>错误（M: 229.08→459.1，应为 Li₄Ti₅O₁₂ 完整分子量）</div>
+        <div class="upd-item">修复<strong>硅碳</strong>计算错误 — 改用 Si/C 混合模型（输入 Si 含量% + Si 理论比容量）</div>
+        <div class="upd-item">修复速查表、材料参数库中<strong>石墨 y 值</strong>和<strong>LTO M 值</strong>不一致</div>
+      </div>
+      <div class="upd-section">
+        <div class="upd-tag upd-tag-opt">⚙ 优化</div>
+        <div class="upd-item">硅碳改为<strong>理论比容量</strong>（Si = 4200 mAh/g）</div>
+        <div class="upd-item">负极材料数据库<strong>删除硬碳计算</strong>（无确定分子式，公式不适用）</div>
+        <div class="upd-item">材料参数库表格数据同步更新</div>
+      </div>
+    </div>
+    <button class="upd-btn" onclick="closeUpd()">知道了</button>
+  </div>
+</div>
+
+<!-- ===== 团队介绍 ===== -->
+<div style="max-width:1280px;margin:0 auto;padding:0 20px">
+  <div class="cd" style="margin-top:20px">
+    <div class="ct"><span class="ic">👥</span> 开发团队</div>
+    <div class="tw"><table><thead><tr><th>成员</th><th>分工职责</th></tr></thead><tbody>
+      <tr><td><strong>刘佳</strong></td><td>协调分工、审核网页运行数据及功能、修改并完善最终报告、汇总团队成果、制作汇报PPT</td></tr>
+      <tr><td><strong>刘浩磊</strong></td><td>利用AI生成代码、调试网页功能、修复参数与数据bug、拓展创新功能、优化页面布局</td></tr>
+      <tr><td><strong>李依恒</strong></td><td>审核网页运行数据及功能、整理作业报告、梳理设计思路</td></tr>
+      <tr><td><strong>黄磊</strong></td><td>审核网页运行数据及功能、检查运行bug、修改报告</td></tr>
+      <tr><td><strong>宋阳天</strong></td><td>审核网页运行数据及功能、拓展新增功能、完善设计逻辑、修改PPT</td></tr>
+      <tr><td><strong>唐同申</strong></td><td>审核网页运行数据及功能、整理网页运行截图、汇总材料、提供制作PPT材料</td></tr>
+    </tbody></table></div>
+  </div>
+</div>
+
+<div class="ft">锂电池正负极材料比容量与比能量计算器 · 基于法拉第定律 · 数据仅供参考</div>
+
+<script>
+/* === 更新日志弹窗 === */
+(function() {
+  var o = document.getElementById('updOverlay');
+  if (o) { requestAnimationFrame(function() { o.classList.add('show'); }); }
+})();
+function closeUpd() {
+  var o = document.getElementById('updOverlay');
+  if (o) { o.classList.remove('show'); setTimeout(function() { o.style.display = 'none'; }, 350); }
+}
+document.getElementById('updOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeUpd();
+});
+
+/* === 导航栏鼠标拖拽滚动 === */
+(function() {
+  var nav = document.querySelector('.nav');
+  if (!nav) return;
+  var isDown = false, startX = 0, scrollLeft = 0, moved = false;
+  var DRAG_THRESHOLD = 5; // 移动超过5px才算拖拽
+
+  nav.addEventListener('mousedown', function(e) {
+    isDown = true; moved = false;
+    startX = e.pageX - nav.offsetLeft;
+    scrollLeft = nav.scrollLeft;
+  });
+  nav.addEventListener('mouseleave', function() {
+    if (isDown && moved) nav.classList.remove('dragging');
+    isDown = false;
+  });
+  nav.addEventListener('mouseup', function() {
+    if (moved) nav.classList.remove('dragging');
+    isDown = false;
+  });
+  nav.addEventListener('mousemove', function(e) {
+    if (!isDown) return;
+    var x = e.pageX - nav.offsetLeft;
+    var dx = x - startX;
+    if (Math.abs(dx) > DRAG_THRESHOLD) {
+      moved = true;
+      nav.classList.add('dragging');
+    }
+    if (moved) {
+      e.preventDefault();
+      nav.scrollLeft = scrollLeft - dx;
+    }
+  });
+  // 拖拽过则阻止click，让未拖拽的点击正常工作
+  nav.addEventListener('click', function(e) {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+  }, true);
+})();
+
+/* === 核心常量 === */
+const F = 96485;
+
+/* === 导航切换 === */
+function sw(i) {
+  document.querySelectorAll('.md').forEach((m, j) => m.classList.toggle('on', j === i));
+  document.querySelectorAll('.nb').forEach((b, j) => b.classList.toggle('on', j === i));
+  if (i === 4) renderChart();
+}
+
+/* === 材料优缺点搜索与筛选 === */
+var _matCurTag = 'all';
+function filterMats() { _applyMatFilter(); }
+function filterTag(tag, el) {
+  _matCurTag = tag;
+  document.querySelectorAll('#mat-chips .ms-chip').forEach(c => c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  _applyMatFilter();
+}
+function _fuzzyMatch(haystack, needle) {
+  if (!needle) return true;
+  // 精确子串匹配
+  if (haystack.indexOf(needle) >= 0) return true;
+  // 模糊匹配：按字符顺序出现在文本中（允许间隔）
+  var hi = 0;
+  for (var ni = 0; ni < needle.length; ni++) {
+    var ch = needle[ni];
+    var found = haystack.indexOf(ch, hi);
+    if (found < 0) return false;
+    hi = found + 1;
+  }
+  return true;
+}
+
+/* 拼音首字母/常见缩写映射 */
+var _matPY = {
+  'lsfl':'磷酸铁锂','lfp':'lfp 磷酸铁锂',
+  'ngsm':'镍钴三元','ncm':'ncm 镍钴锰',
+  'ncm1':'ncm111','ncm5':'ncm523','ncm6':'ncm622','ncm8':'ncm811',
+  'ngm':'镍钴铝','nca':'nca 镍钴铝',
+  'gsln':'钴酸锂','lco':'lco 钴酸锂',
+  'msln':'锰酸锂','lmo':'lmo 锰酸锂',
+  'lmtfl':'磷酸锰铁锂','lmfp':'lmfp 磷酸锰铁锂',
+  'flyj':'富锂锰基','fly':'富锂锰基',
+  'rzs':'人造石墨','rzs2':'石墨 graphite',
+  'trzs':'天然石墨',
+  'gui':'硅 si silicon',
+  'gyh':'氧化硅','siox':'siox 氧化硅',
+  'gt':'硅碳','sic':'硅碳',
+  'yt':'硬碳','yc':'硬碳','hardc':'硬碳',
+  'rc':'软碳','softc':'软碳',
+  'lt':'lto 钛酸锂','lto':'lto 钛酸锂',
+  'xjhj':'锡基合金','sn':'锡 sn',
+  'ljs':'锂金属','lithium':'锂金属 锂',
+  'aq':'安全','kc':'快充','shoum':'寿命','cr':'长寿命',
+  'rl':'容量','ny':'能量','gl':'功率','dj':'低价','cb':'成本'
+};
+
+function _expandQuery(q) {
+  if (!q) return '';
+  // 精确匹配
+  var mapped = _matPY[q];
+  if (mapped) return mapped;
+  // 查询太短不做模糊映射（避免误匹配）
+  if (q.length < 2) return q;
+  // 模糊匹配：查询包含某个key，或key包含查询（双向子串匹配）
+  var best = '';
+  for (var k in _matPY) {
+    if (k.length < 2) continue; // 跳过单字母key
+    if (q.indexOf(k) >= 0 || k.indexOf(q) >= 0) {
+      var val = _matPY[k];
+      if (val.length > best.length) best = val; // 取最长匹配
+    }
+  }
+  return best || q;
+}
+
+function _applyMatFilter() {
+  var raw = (document.getElementById('mat-search').value || '').toLowerCase().trim();
+  var expanded = _expandQuery(raw);
+  var queries = expanded ? expanded.split(/\s+/) : [];
+  var cards = document.querySelectorAll('#mat-pro-list .pro-card');
+  var visible = 0;
+  cards.forEach(function(card) {
+    var type = card.getAttribute('data-type') || '';
+    var tags = card.getAttribute('data-tags') || '';
+    var kw = card.getAttribute('data-keywords') || '';
+    var text = card.textContent.toLowerCase();
+    var tagOk = _matCurTag === 'all' || type === _matCurTag || tags.indexOf(_matCurTag) >= 0;
+    var qOk = !raw;
+    if (raw) {
+      qOk = false;
+      // 所有查询词都要匹配（AND 逻辑）
+      for (var i = 0; i < queries.length; i++) {
+        var qq = queries[i];
+        if (_fuzzyMatch(text, qq) || _fuzzyMatch(kw, qq)) { qOk = true; break; }
+      }
+      // 如果原始输入本身就匹配，也算通过
+      if (!qOk && (_fuzzyMatch(text, raw) || _fuzzyMatch(kw, raw))) qOk = true;
+    }
+    if (tagOk && qOk) { card.classList.remove('hide'); visible++; }
+    else { card.classList.add('hide'); }
+  });
+  document.getElementById('no-mat-result').style.display = visible ? 'none' : 'block';
+}
+
+/* === 正极材料数据库 === */
+const CATHODE_DB = {
+  lfp:    { name: 'LiFePO₄',                   mol: 157.76, x: 1.0,  v: 3.45, eff: 90, density: 3.6, comp: 2.3, label: 'LFP' },
+  ncm523: { name: 'LiNi₀.₅Co₀.₂Mn₀.₃O₂',     mol: 96.46,  x: 1.0,  v: 3.6,  eff: 60, density: 4.7, comp: 3.3, label: 'NCM523' },
+  ncm622: { name: 'LiNi₀.₆Co₀.₂Mn₀.₂O₂',     mol: 96.46,  x: 1.0,  v: 3.7,  eff: 62, density: 4.7, comp: 3.4, label: 'NCM622' },
+  ncm811: { name: 'LiNi₀.₈Co₀.₁Mn₀.₁O₂',     mol: 96.46,  x: 1.0,  v: 3.7,  eff: 70, density: 4.7, comp: 3.5, label: 'NCM811' },
+  nca:    { name: 'LiNi₀.₈Co₀.₁₅Al₀.₀₅O₂',   mol: 96.75,  x: 0.9,  v: 3.7,  eff: 72, density: 4.8, comp: 3.5, label: 'NCA' },
+  lco:    { name: 'LiCoO₂',                     mol: 97.87,  x: 0.55, v: 3.9,  eff: 95, density: 5.1, comp: 4.0, label: 'LCO' },
+  lmo:    { name: 'LiMn₂O₄',                    mol: 180.81, x: 1.0,  v: 4.0,  eff: 75, density: 4.3, comp: 3.1, label: 'LMO' },
+  lmfp:   { name: 'LiMn₀.₆Fe₀.₄PO₄',          mol: 155.0,  x: 1.0,  v: 3.8,  eff: 88, density: 3.5, comp: 2.2, label: 'LMFP' }
+};
+
+/* === 正极快速选择 === */
+function fillCat(k, el) {
+  document.querySelectorAll('#ct-cath .ch').forEach(c => c.classList.remove('on'));
+  var ids = ['cat-name', 'cat-mol', 'cat-x', 'cat-v', 'cat-density', 'cat-comp'];
+  if (k === 'custom') {
+    document.getElementById('cat-custom-chip').classList.add('on');
+    document.getElementById('cat-name').value = '';
+    document.getElementById('cat-mol').value = '';
+    document.getElementById('cat-x').value = '';
+    document.getElementById('cat-v').value = '';
+    document.getElementById('cat-eff').value = '90';
+    document.getElementById('cat-density').value = '';
+    document.getElementById('cat-comp').value = '';
+    ids.forEach(function(id) { document.getElementById(id).classList.add('custom-active'); });
+    document.getElementById('r0tc').textContent = '—';
+    document.getElementById('r0te').textContent = '—';
+    document.getElementById('r0ac').textContent = '—';
+    document.getElementById('r0ae').textContent = '—';
+    document.getElementById('r0vc').textContent = '—';
+    document.getElementById('r0vcc').textContent = '—';
+    document.getElementById('s0mc').textContent = '—';
+    document.getElementById('s0me').textContent = '—';
+    document.getElementById('s0v').textContent = '—';
+    document.getElementById('s0ac').textContent = '—';
+    document.getElementById('cat-process').innerHTML = '请输入自定义材料参数。';
+    return;
+  }
+  var d = CATHODE_DB[k];
+  if (!d) return;
+  ids.forEach(function(id) { document.getElementById(id).classList.remove('custom-active'); });
+  if (el) el.classList.add('on');
+  document.getElementById('cat-name').value = d.name;
+  document.getElementById('cat-mol').value = d.mol;
+  document.getElementById('cat-x').value = d.x;
+  document.getElementById('cat-v').value = d.v;
+  document.getElementById('cat-eff').value = d.eff;
+  document.getElementById('cat-density').value = d.density;
+  document.getElementById('cat-comp').value = d.comp;
+  catCalc();
+}
+
+/* === 正极计算 === */
+function catCalc() {
+  var errEl = document.getElementById('cat-err');
+  var M    = +document.getElementById('cat-mol').value;
+  var x    = +document.getElementById('cat-x').value;
+  var V    = +document.getElementById('cat-v').value;
+  var eff  = +document.getElementById('cat-eff').value;
+  var rho  = +document.getElementById('cat-density').value;
+  var rhoC = +document.getElementById('cat-comp').value;
+  if (!M || !x || !V) {
+    errEl.style.display = 'block';
+    errEl.textContent = '请确保M、x、V大于0';
+    return;
+  }
+  errEl.style.display = 'none';
+  var Ct  = (x * F) / (3.6 * M);
+  var Et  = Ct * V;
+  var Ca  = Ct * eff / 100;
+  var Ea  = Et * eff / 100;
+  var vc  = Ct * rho / 1000;
+  var vcc = Ct * rhoC / 1000;
+  document.getElementById('s0mc').textContent = Ct.toFixed(1) + ' mAh/g';
+  document.getElementById('s0me').textContent = Et.toFixed(1) + ' Wh/kg';
+  document.getElementById('s0v').textContent  = V.toFixed(2) + ' V';
+  document.getElementById('s0ac').textContent = Ca.toFixed(1) + ' mAh/g';
+  document.getElementById('r0tc').textContent  = Ct.toFixed(2) + ' mAh/g';
+  document.getElementById('r0te').textContent  = Et.toFixed(1) + ' Wh/kg';
+  document.getElementById('r0ac').textContent  = Ca.toFixed(2) + ' mAh/g';
+  document.getElementById('r0ae').textContent  = Ea.toFixed(1) + ' Wh/kg';
+  document.getElementById('r0vc').textContent  = vc.toFixed(2) + ' Ah/L';
+  document.getElementById('r0vcc').textContent = vcc.toFixed(2) + ' Ah/L';
+  var nm = document.getElementById('cat-name').value;
+  document.getElementById('cat-process').innerHTML =
+    '<b>' + nm + '</b><br>' +
+    'M=' + M.toFixed(3) + ', x=' + x + ', F=96485<br><br>' +
+    'C = (' + x + '×96485)/(3.6×' + M.toFixed(3) + ') = <b>' + Ct.toFixed(2) + ' mAh/g</b><br>' +
+    'E = ' + Ct.toFixed(2) + '×' + V + ' = <b>' + Et.toFixed(1) + ' Wh/kg</b><br>' +
+    'C_actual = ' + Ct.toFixed(2) + '×' + eff + '% = <b>' + Ca.toFixed(2) + ' mAh/g</b>';
+  window._lastCatCalc = { name: nm, label: nm, Ctheory: Ct, Etheory: Et, Cactual: Ca, Eactual: Ea, volCap: vc, rho: rho };
+}
+
+/* === 负极材料数据库 === */
+const ANODE_DB = {
+  graphite: { name: '石墨 (C₆→LiC₆)',     mol: 72.066,  y: 1,   v: 0.1,  eff: 92,  density: 2.2,  comp: 1.6,  label: '石墨' },
+  si:       { name: '硅 (Si→Li₄.₄Si)',     mol: 28.085,  y: 4.4, v: 0.3,  eff: 40,  density: 2.3,  comp: 1.0,  label: '硅' },
+  siox:     { name: 'SiOₓ',                 mol: 44.085,  y: 4.4, v: 0.3,  eff: 35,  density: 2.3,  comp: 1.0,  label: 'SiOₓ' },
+  sic:      { name: '硅碳 Si/C',            mol: 15,      y: 4200, v: 0.2,  eff: 85,  density: 2.1,  comp: 1.2,  label: '硅碳' },
+  lto:      { name: 'LTO Li₄Ti₅O₁₂',       mol: 459.1,   y: 3,   v: 1.55, eff: 95,  density: 3.5,  comp: 1.9,  label: 'LTO' },
+  lithium:  { name: '锂金属 Li',             mol: 6.941,   y: 1,   v: 0,    eff: 100, density: 0.534, comp: 0.534, label: '锂金属' }
+};
+
+/* === 负极快速选择 === */
+function fillAno(k, el) {
+  document.querySelectorAll('#ct-anod .ch').forEach(c => c.classList.remove('on'));
+  var ids = ['ano-name', 'ano-mol', 'ano-y', 'ano-v', 'ano-density', 'ano-comp'];
+  if (k === 'custom') {
+    document.getElementById('ano-custom-chip').classList.add('on');
+    document.getElementById('ano-name').value = '';
+    document.getElementById('ano-mol').value = '';
+    document.getElementById('ano-y').value = '';
+    document.getElementById('ano-v').value = '';
+    document.getElementById('ano-eff').value = '90';
+    document.getElementById('ano-density').value = '';
+    document.getElementById('ano-comp').value = '';
+    ids.forEach(function(id) { document.getElementById(id).classList.add('custom-active'); });
+    document.getElementById('r1tc').textContent = '—';
+    document.getElementById('r1te').textContent = '—';
+    document.getElementById('r1ac').textContent = '—';
+    document.getElementById('r1ae').textContent = '—';
+    document.getElementById('r1vc').textContent = '—';
+    document.getElementById('r1vcc').textContent = '—';
+    document.getElementById('s1mc').textContent = '—';
+    document.getElementById('s1me').textContent = '—';
+    document.getElementById('s1v').textContent  = '—';
+    document.getElementById('s1ac').textContent = '—';
+    document.getElementById('ano-process').innerHTML = '请输入自定义材料参数。';
+    return;
+  }
+  var d = ANODE_DB[k];
+  if (!d) return;
+  ids.forEach(function(id) { document.getElementById(id).classList.remove('custom-active'); });
+  if (el) el.classList.add('on');
+  document.getElementById('ano-name').value = d.name;
+  document.getElementById('ano-mol').value = d.mol;
+  document.getElementById('ano-y').value = d.y;
+  document.getElementById('ano-v').value = d.v;
+  document.getElementById('ano-eff').value = d.eff;
+  document.getElementById('ano-density').value = d.density;
+  document.getElementById('ano-comp').value = d.comp;
+  /* 更新标签文字 */
+  var molLabel = document.querySelector('#ano-mol').closest('.fg').querySelector('label');
+  var yLabel   = document.querySelector('#ano-y').closest('.fg').querySelector('label');
+  var molHint  = document.querySelector('#ano-mol').closest('.fg').querySelector('.ih');
+  var yHint    = document.querySelector('#ano-y').closest('.fg').querySelector('.ih');
+  if (k === 'sic') {
+    molLabel.textContent = 'Si 含量 (%)'; molHint.textContent = '硅碳中硅的质量百分比';
+    yLabel.textContent = 'Si 理论比容量 (mAh/g)'; yHint.textContent = '硅的理论容量，4200 mAh/g';
+  } else {
+    molLabel.textContent = '摩尔质量 M (g/mol)'; molHint.textContent = k === 'graphite' ? '石墨C₆=72.066' : '';
+    yLabel.textContent = '嵌锂量 y'; yHint.textContent = k === 'graphite' ? '石墨LiC₆→y=1' : '';
+  }
+  anoCalc();
+}
+
+/* === 负极计算 === */
+function anoCalc() {
+  var errEl = document.getElementById('ano-err');
+  var M    = +document.getElementById('ano-mol').value;
+  var y    = +document.getElementById('ano-y').value;
+  var V    = +document.getElementById('ano-v').value;
+  var eff  = +document.getElementById('ano-eff').value;
+  var rho  = +document.getElementById('ano-density').value;
+  var rhoC = +document.getElementById('ano-comp').value;
+  /* 锂金属特殊处理 */
+  if (document.getElementById('ano-name').value.indexOf('锂金属') >= 0) {
+    var CtLi = 3860, CaLi = CtLi * eff / 100;
+    document.getElementById('s1mc').textContent = '3860 mAh/g';
+    document.getElementById('s1me').textContent = 'N/A';
+    document.getElementById('s1v').textContent  = '0V';
+    document.getElementById('s1ac').textContent = CaLi.toFixed(0) + ' mAh/g';
+    document.getElementById('r1tc').textContent = '3860 mAh/g';
+    document.getElementById('r1te').textContent = 'N/A';
+    document.getElementById('r1ac').textContent = CaLi.toFixed(0) + ' mAh/g';
+    document.getElementById('r1ae').textContent = 'N/A';
+    document.getElementById('r1vc').textContent  = (3860 * rho / 1000).toFixed(2) + ' Ah/L';
+    document.getElementById('r1vcc').textContent = (3860 * rhoC / 1000).toFixed(2) + ' Ah/L';
+    errEl.style.display = 'none';
+    document.getElementById('ano-process').innerHTML = '<b>锂金属</b>：理论3860 mAh/g (M=6.941, y=1)';
+    window._lastAnoCalc = { name: '锂金属', label: '锂金属', Ctheory: 3860, Etheory: 0, Cactual: CaLi, Eactual: 0, volCap: 3860 * rho / 1000, rho: rho };
+    return;
+  }
+  var nm = document.getElementById('ano-name').value;
+
+  /* 硅碳：混合模型，C = w_si × C_si + (1-w_si) × C_graphite */
+  if (nm.indexOf('硅碳') >= 0 || nm.indexOf('Si/C') >= 0 || nm.indexOf('si/c') >= 0) {
+    var siPct = M;  /* 复用 M 输入框作为 Si 质量百分比 */
+    if (siPct <= 0 || siPct >= 100) { siPct = 15; document.getElementById('ano-mol').value = 15; }
+    var Csi = y;    /* 复用 y 输入框作为 Si 理论比容量 */
+    if (Csi <= 0) { Csi = 4200; document.getElementById('ano-y').value = 4200; }
+    var Cg = 372;   /* 石墨理论容量 */
+    var Ct  = (siPct / 100) * Csi + ((100 - siPct) / 100) * Cg;
+    var Et  = Ct * V;
+    var Ca  = Ct * eff / 100;
+    var Ea  = Et * eff / 100;
+    var vc  = Ct * rho / 1000;
+    var vcc = Ct * rhoC / 1000;
+    document.getElementById('s1mc').textContent = Ct.toFixed(0) + ' mAh/g';
+    document.getElementById('s1me').textContent = Et.toFixed(1) + ' Wh/kg';
+    document.getElementById('s1v').textContent  = V.toFixed(2) + ' V';
+    document.getElementById('s1ac').textContent = Ca.toFixed(0) + ' mAh/g';
+    document.getElementById('r1tc').textContent  = Ct.toFixed(1) + ' mAh/g';
+    document.getElementById('r1te').textContent  = Et.toFixed(1) + ' Wh/kg';
+    document.getElementById('r1ac').textContent  = Ca.toFixed(1) + ' mAh/g';
+    document.getElementById('r1ae').textContent  = Ea.toFixed(1) + ' Wh/kg';
+    document.getElementById('r1vc').textContent  = vc.toFixed(2) + ' Ah/L';
+    document.getElementById('r1vcc').textContent = vcc.toFixed(2) + ' Ah/L';
+    errEl.style.display = 'none';
+    document.getElementById('ano-process').innerHTML =
+      '<b>硅碳 (Si/C 复合材料)</b> — 混合模型<br>' +
+      'Si 含量: ' + siPct + '%, Si 理论比容量: ' + Csi + ' mAh/g, 石墨: 372 mAh/g<br><br>' +
+      'C = ' + siPct + '%×' + Csi + ' + ' + (100-siPct) + '%×372 = <b>' + Ct.toFixed(1) + ' mAh/g</b><br>' +
+      'E = ' + Ct.toFixed(1) + '×' + V + ' = <b>' + Et.toFixed(1) + ' Wh/kg</b><br>' +
+      'C_actual = ' + Ct.toFixed(1) + '×' + eff + '% = <b>' + Ca.toFixed(1) + ' mAh/g</b><br>' +
+      '<span style="color:var(--tx3);font-size:.75rem">💡 硅碳为复合材料，无法用 (y×F)/(3.6×M) 公式计算。' +
+      'M 输入框 = Si 质量百分比(%), y 输入框 = Si 理论比容量(mAh/g)</span>';
+    window._lastAnoCalc = { name: nm, label: '硅碳', Ctheory: Ct, Etheory: Et, Cactual: Ca, Eactual: Ea, volCap: vc, rho: rho };
+    return;
+  }
+
+  if (!M || !y) {
+    errEl.style.display = 'block';
+    errEl.textContent = '请确保M和y大于0';
+    return;
+  }
+  errEl.style.display = 'none';
+  var Ct  = (y * F) / (3.6 * M);
+  var Et  = Ct * V;
+  var Ca  = Ct * eff / 100;
+  var Ea  = Et * eff / 100;
+  var vc  = Ct * rho / 1000;
+  var vcc = Ct * rhoC / 1000;
+  document.getElementById('s1mc').textContent = Ct.toFixed(1) + ' mAh/g';
+  document.getElementById('s1me').textContent = Et.toFixed(1) + ' Wh/kg';
+  document.getElementById('s1v').textContent  = V.toFixed(2) + ' V';
+  document.getElementById('s1ac').textContent = Ca.toFixed(1) + ' mAh/g';
+  document.getElementById('r1tc').textContent  = Ct.toFixed(2) + ' mAh/g';
+  document.getElementById('r1te').textContent  = Et.toFixed(1) + ' Wh/kg';
+  document.getElementById('r1ac').textContent  = Ca.toFixed(2) + ' mAh/g';
+  document.getElementById('r1ae').textContent  = Ea.toFixed(1) + ' Wh/kg';
+  document.getElementById('r1vc').textContent  = vc.toFixed(2) + ' Ah/L';
+  document.getElementById('r1vcc').textContent = vcc.toFixed(2) + ' Ah/L';
+  document.getElementById('ano-process').innerHTML =
+    '<b>' + nm + '</b><br>' +
+    'M=' + M.toFixed(3) + ', y=' + y + ', F=96485<br><br>' +
+    'C = (' + y + '×96485)/(3.6×' + M.toFixed(3) + ') = <b>' + Ct.toFixed(2) + ' mAh/g</b><br>' +
+    'E = ' + Ct.toFixed(2) + '×' + V + ' = <b>' + Et.toFixed(1) + ' Wh/kg</b><br>' +
+    'C_actual = ' + Ct.toFixed(2) + '×' + eff + '% = <b>' + Ca.toFixed(2) + ' mAh/g</b>';
+  window._lastAnoCalc = { name: nm, label: nm, Ctheory: Ct, Etheory: Et, Cactual: Ca, Eactual: Ea, volCap: vc, rho: rho };
+}
+
+/* === 要求计算：统一材料数据库 === */
+var REQ_DB = {
+  /* 正极 */
+  lfp:    { name: 'LiFePO₄',               mol: 157.76, n: 1.0,  v: 3.45, eff: 90, density: 3.6,  label: 'LFP' },
+  ncm523: { name: 'LiNi₀.₅Co₀.₂Mn₀.₃O₂', mol: 96.46,  n: 1.0,  v: 3.6,  eff: 60, density: 4.7,  label: 'NCM523' },
+  ncm622: { name: 'LiNi₀.₆Co₀.₂Mn₀.₂O₂', mol: 96.46,  n: 1.0,  v: 3.7,  eff: 62, density: 4.7,  label: 'NCM622' },
+  ncm811: { name: 'LiNi₀.₈Co₀.₁Mn₀.₁O₂', mol: 96.46,  n: 1.0,  v: 3.7,  eff: 70, density: 4.7,  label: 'NCM811' },
+  nca:    { name: 'LiNi₀.₈Co₀.₁₅Al₀.₀₅O₂', mol: 96.75, n: 0.9, v: 3.7, eff: 72, density: 4.8,  label: 'NCA' },
+  lco:    { name: 'LiCoO₂',                 mol: 97.87,  n: 0.55, v: 3.9, eff: 95, density: 5.1,  label: 'LCO' },
+  lmo:    { name: 'LiMn₂O₄',               mol: 180.81, n: 1.0,  v: 4.0, eff: 75, density: 4.3,  label: 'LMO' },
+  lmfp:   { name: 'LiMn₀.₆Fe₀.₄PO₄',     mol: 155.0,  n: 1.0,  v: 3.8, eff: 88, density: 3.5,  label: 'LMFP' },
+  /* 负极 */
+  graphite: { name: '石墨 (C₆→LiC₆)',     mol: 72.066,  n: 1,   v: 0.1, eff: 92, density: 2.2,  label: '石墨' },
+  si:       { name: '硅 (Si→Li₄.₄Si)',     mol: 28.085,  n: 4.4, v: 0.3, eff: 40, density: 2.3,  label: '硅' },
+  siox:     { name: 'SiOₓ',                 mol: 44.085,  n: 4.4, v: 0.3, eff: 35, density: 2.3,  label: 'SiOₓ' },
+  sic:      { name: '硅碳 Si/C',            mol: 15,      n: 4200, v: 0.2, eff: 85, density: 2.1,  label: '硅碳' },
+  lto:      { name: 'LTO Li₄Ti₅O₁₂',       mol: 459.1,   n: 3,   v: 1.55, eff: 95, density: 3.5, label: 'LTO' },
+  lithium:  { name: '锂金属 Li',             mol: 6.941,   n: 1,   v: 0,   eff: 100, density: 0.534, label: '锂金属' }
+};
+
+/* === 要求计算：材料选择（正负极统一，只能选一个） === */
+function reqFill(k, el) {
+  /* 清除两行 chips 的选中态 */
+  document.querySelectorAll('#ct-req-mat .ch, #ct-req-mat2 .ch').forEach(function(c) { c.classList.remove('on'); });
+  if (el) el.classList.add('on');
+  var d = REQ_DB[k];
+  if (!d) return;
+  /* 填充所有基础参数 */
+  document.getElementById('req-name').value = d.name;
+  document.getElementById('req-n').value = d.n;
+  document.getElementById('req-mol').value = d.mol;
+  document.getElementById('req-eff').value = d.eff;
+  document.getElementById('req-density').value = d.density;
+  document.getElementById('req-e-v').value = d.v;
+  /* 更新标签 */
+  var nLabel = document.getElementById('req-n').closest('.fg').querySelector('label');
+  var molLabel = document.getElementById('req-mol').closest('.fg').querySelector('label');
+  if (k === 'sic') {
+    nLabel.textContent = 'Si 理论比容量 (mAh/g)';
+    molLabel.textContent = 'Si 含量 (%)';
+  } else {
+    nLabel.textContent = '转移电子数 n';
+    molLabel.textContent = '摩尔质量 M (g/mol)';
+  }
+  /* 一次性计算全部 */
+  reqCalcAll();
+}
+
+/* === 要求计算：一键全算（容量→能量→功率） === */
+function reqCalcAll() {
+  var n   = +document.getElementById('req-n').value;
+  var M   = +document.getElementById('req-mol').value;
+  var eff = +document.getElementById('req-eff').value;
+  var rho = +document.getElementById('req-density').value;
+  var V   = +document.getElementById('req-e-v').value;
+  var errEl = document.getElementById('req-cap-err');
+  var nm = document.getElementById('req-name').value;
+
+  /* 硅碳：混合模型 */
+  if (nm.indexOf('硅碳') >= 0 || nm.indexOf('Si/C') >= 0) {
+    var siPct = M; if (siPct <= 0 || siPct >= 100) siPct = 15;
+    var Csi = n;   if (Csi <= 0) Csi = 4200;
+    var Ct = (siPct/100) * Csi + ((100-siPct)/100) * 372;
+    var Ca = Ct * eff / 100;
+    var vc = Ct * rho / 1000;
+    errEl.style.display = 'none';
+    document.getElementById('req-cap-th').textContent = Ct.toFixed(1) + ' mAh/g';
+    document.getElementById('req-cap-ac').textContent = Ca.toFixed(1) + ' mAh/g';
+    document.getElementById('req-cap-vol').textContent = vc.toFixed(2) + ' Ah/L';
+    document.getElementById('req-cap-process').innerHTML =
+      '<b>硅碳 混合模型</b><br>Si ' + siPct + '%×' + Csi + ' + ' + (100-siPct) + '%×372 = <b>' + Ct.toFixed(1) + ' mAh/g</b>';
+    document.getElementById('req-e-cap').value = Ct.toFixed(2);
+    if (V > 0) { var Et = Ct * V, Ea = Et * eff / 100; document.getElementById('req-energy-th').textContent = Et.toFixed(1) + ' Wh/kg'; document.getElementById('req-energy-ac').textContent = Ea.toFixed(1) + ' Wh/kg'; document.getElementById('req-energy-vol').textContent = (Et*rho/1000).toFixed(2) + ' Wh/L'; }
+    return;
+  }
+
+  if (!n || !M) {
+    errEl.style.display = 'block';
+    errEl.textContent = '请确保转移电子数 n 和摩尔质量 M 大于0';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  /* ① 比容量 */
+  var Ct = (n * F) / (3.6 * M);
+  var Ca = Ct * eff / 100;
+  var vc = Ct * rho / 1000;
+  document.getElementById('req-cap-th').textContent = Ct.toFixed(2) + ' mAh/g';
+  document.getElementById('req-cap-ac').textContent = Ca.toFixed(2) + ' mAh/g';
+  document.getElementById('req-cap-vol').textContent = vc.toFixed(2) + ' Ah/L';
+  var nm = document.getElementById('req-name').value;
+  document.getElementById('req-cap-process').innerHTML =
+    '<b>' + nm + '</b><br>n=' + n + ', M=' + M.toFixed(3) + ', F=96485<br><br>' +
+    'C = (' + n + '×96485)/(3.6×' + M.toFixed(3) + ') = <b>' + Ct.toFixed(2) + ' mAh/g</b><br>' +
+    'C_actual = ' + Ct.toFixed(2) + '×' + eff + '% = <b>' + Ca.toFixed(2) + ' mAh/g</b><br>' +
+    'C_vol = ' + Ct.toFixed(2) + '×' + rho + '/1000 = <b>' + vc.toFixed(2) + ' Ah/L</b>';
+
+  /* 自动填入比能量模块 */
+  document.getElementById('req-e-cap').value = Ct.toFixed(2);
+
+  /* ② 比能量 */
+  var errEl2 = document.getElementById('req-energy-err');
+  if (V > 0) {
+    errEl2.style.display = 'none';
+    var Et = Ct * V;
+    var Ea = Et * eff / 100;
+    var ve = Et * rho / 1000;
+    document.getElementById('req-energy-th').textContent = Et.toFixed(1) + ' Wh/kg';
+    document.getElementById('req-energy-ac').textContent = Ea.toFixed(1) + ' Wh/kg';
+    document.getElementById('req-energy-vol').textContent = ve.toFixed(2) + ' Wh/L';
+    document.getElementById('req-energy-process').innerHTML =
+      'C=' + Ct.toFixed(2) + ' mAh/g, V=' + V + ' V<br><br>' +
+      'E = ' + Ct.toFixed(2) + '×' + V + ' = <b>' + Et.toFixed(1) + ' Wh/kg</b><br>' +
+      'E<sub>actual</sub> = ' + Et.toFixed(1) + '×' + eff + '% = <b>' + Ea.toFixed(1) + ' Wh/kg</b><br>' +
+      'E<sub>vol</sub> = ' + Et.toFixed(1) + '×' + rho + '/1000 = <b>' + ve.toFixed(2) + ' Wh/L</b>';
+    /* 自动填入比功率模块 */
+    document.getElementById('req-p-rate-e').value = Et.toFixed(1);
+    /* 自动触发比功率计算 */
+    reqCalcPowerRate();
+  } else {
+    document.getElementById('req-energy-th').textContent = '—';
+    document.getElementById('req-energy-ac').textContent = '—';
+    document.getElementById('req-energy-vol').textContent = '—';
+    document.getElementById('req-energy-process').innerHTML = '电压为0，无法计算比能量。';
+  }
+
+  /* 保存供图表使用 */
+  window._lastReqCalc = { name: nm, label: nm, Ctheory: Ct, Etheory: (V > 0 ? Ct * V : 0), Cactual: Ca, Eactual: (V > 0 ? Ct * V * eff / 100 : 0), volCap: vc, volEnergy: (V > 0 ? Ct * V * rho / 1000 : 0), rho: rho };
+}
+
+/* === 要求计算：比能量独立触发 === */
+function reqCalcEnergy() {
+  var C = +document.getElementById('req-e-cap').value;
+  var V = +document.getElementById('req-e-v').value;
+  var eff = +document.getElementById('req-eff').value;
+  var rho = +document.getElementById('req-density').value;
+  var errEl = document.getElementById('req-energy-err');
+  if (!C || !V) { errEl.style.display = 'block'; errEl.textContent = '请确保比容量和电压大于0'; return; }
+  errEl.style.display = 'none';
+  var Et = C * V, Ea = Et * eff / 100, ve = Et * rho / 1000;
+  document.getElementById('req-energy-th').textContent = Et.toFixed(1) + ' Wh/kg';
+  document.getElementById('req-energy-ac').textContent = Ea.toFixed(1) + ' Wh/kg';
+  document.getElementById('req-energy-vol').textContent = ve.toFixed(2) + ' Wh/L';
+  document.getElementById('req-energy-process').innerHTML =
+    'C=' + C.toFixed(2) + ' mAh/g, V=' + V + ' V<br><br>' +
+    'E = ' + C.toFixed(2) + '×' + V + ' = <b>' + Et.toFixed(1) + ' Wh/kg</b><br>' +
+    'E<sub>actual</sub> = ' + Et.toFixed(1) + '×' + eff + '% = <b>' + Ea.toFixed(1) + ' Wh/kg</b><br>' +
+    'E<sub>vol</sub> = ' + Et.toFixed(1) + '×' + rho + '/1000 = <b>' + ve.toFixed(2) + ' Wh/L</b>';
+  document.getElementById('req-p-rate-e').value = Et.toFixed(1);
+  if (window._lastReqCalc) { window._lastReqCalc.Etheory = Et; window._lastReqCalc.Eactual = Ea; window._lastReqCalc.volEnergy = ve; }
+}
+
+/* === 要求计算：比功率模式切换 === */
+function setPwMode(mode) {
+  var rb = document.getElementById('req-pw-rate-box'), pb = document.getElementById('req-pw-power-box');
+  var tb = document.getElementById('req-pw-toggle-rate'), tp = document.getElementById('req-pw-toggle-power');
+  if (mode === 'rate') { rb.style.display = ''; pb.style.display = 'none'; tb.className = 'btn bp req-pw-toggle on'; tp.className = 'btn bs req-pw-toggle'; }
+  else { rb.style.display = 'none'; pb.style.display = ''; tb.className = 'btn bs req-pw-toggle'; tp.className = 'btn bp req-pw-toggle on'; }
+}
+
+/* === 要求计算：比功率（放电倍率法） === */
+function reqCalcPowerRate() {
+  var E = +document.getElementById('req-p-rate-e').value;
+  var rate = +document.getElementById('req-p-rate-c').value;
+  var eff = +document.getElementById('req-p-rate-eff').value;
+  var errEl = document.getElementById('req-pw-rate-err');
+  if (!E || !rate) { errEl.style.display = 'block'; errEl.textContent = '请确保比能量和放电倍率大于0'; return; }
+  errEl.style.display = 'none';
+  var Pt = E * rate, Pa = Pt * eff / 100;
+  document.getElementById('req-pw-rate-th').textContent = Pt.toFixed(1) + ' W/kg';
+  document.getElementById('req-pw-rate-ac').textContent = Pa.toFixed(1) + ' W/kg';
+  document.getElementById('req-pw-rate-process').innerHTML =
+    'E=' + E.toFixed(1) + ' Wh/kg, Rate=' + rate + 'C<br><br>' +
+    'P = ' + E.toFixed(1) + '×' + rate + ' = <b>' + Pt.toFixed(1) + ' W/kg</b><br>' +
+    'P_actual = ' + Pt.toFixed(1) + '×' + eff + '% = <b>' + Pa.toFixed(1) + ' W/kg</b>';
+  if (window._lastReqCalc) { window._lastReqCalc.Ptheory = Pt; window._lastReqCalc.Pactual = Pa; }
+}
+
+/* === 要求计算：比功率（功率质量法） === */
+function reqCalcPowerDirect() {
+  var W = +document.getElementById('req-p-pw-w').value;
+  var m = +document.getElementById('req-p-pw-m').value;
+  var eff = +document.getElementById('req-p-pw-eff').value;
+  var errEl = document.getElementById('req-pw-direct-err');
+  if (!W || !m) { errEl.style.display = 'block'; errEl.textContent = '请确保功率和质量大于0'; return; }
+  errEl.style.display = 'none';
+  var P = W / (m / 1000), Pa = P * eff / 100;
+  document.getElementById('req-pw-direct-th').textContent = P.toFixed(1) + ' W/kg';
+  document.getElementById('req-pw-direct-ac').textContent = Pa.toFixed(1) + ' W/kg';
+  document.getElementById('req-pw-direct-process').innerHTML =
+    'W=' + W + 'W, m=' + m + 'g = ' + (m / 1000).toFixed(4) + 'kg<br><br>' +
+    'P = ' + W + '/' + (m / 1000).toFixed(4) + ' = <b>' + P.toFixed(1) + ' W/kg</b><br>' +
+    'P_actual = ' + P.toFixed(1) + '×' + eff + '% = <b>' + Pa.toFixed(1) + ' W/kg</b>';
+  if (window._lastReqCalc) { window._lastReqCalc.Ptheory = P; window._lastReqCalc.Pactual = Pa; }
+}
+
+/* === 图表 === */
+var chartInstance = null;
+var COLORS = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#ec4899', '#65a30d', '#ea580c', '#0d9488'];
+var CATH_CHART = [
+  { name: 'LFP',    tc: 170,  te: 586,  ac: 150, ae: 518, radar: [4, 3, 9, 9, 9] },
+  { name: 'NCM523', tc: 278,  te: 1001, ac: 160, ae: 576, radar: [7, 6, 6, 6, 7] },
+  { name: 'NCM622', tc: 276,  te: 1021, ac: 170, ae: 629, radar: [8, 6, 6, 5, 7] },
+  { name: 'NCM811', tc: 276,  te: 1021, ac: 195, ae: 722, radar: [9, 6, 5, 4, 6] },
+  { name: 'NCA',    tc: 251,  te: 929,  ac: 190, ae: 703, radar: [8, 6, 5, 4, 7] },
+  { name: 'LCO',    tc: 151,  te: 589,  ac: 150, ae: 585, radar: [5, 4, 5, 3, 5] },
+  { name: 'LMO',    tc: 148,  te: 592,  ac: 110, ae: 440, radar: [4, 8, 6, 8, 6] }
+];
+var ANO_CHART = [
+  { name: '石墨',  tc: 372,  te: 37,   ac: 350,  ae: 35,  radar: [6, 5, 8, 9, 8] },
+  { name: '硅Si',  tc: 4200, te: 1260, ac: 1500, ae: 450, radar: [10, 3, 4, 3, 3] },
+  { name: 'SiOₓ',  tc: 2680, te: 804,  ac: 1100, ae: 330, radar: [9, 3, 5, 4, 4] },
+  { name: '硅碳',  tc: 500,  te: 100,  ac: 520,  ae: 104, radar: [7, 4, 6, 5, 5] },
+  { name: 'LTO',   tc: 175,  te: 271,  ac: 165,  ae: 256, radar: [3, 10, 9, 5, 10] }
+];
+var customData = [];
+var currentChart = 0;
+
+function sCh(i) {
+  currentChart = i;
+  document.querySelectorAll('#ctabs .cta').forEach(function(t, j) { t.classList.toggle('on', j === i); });
+  renderChart();
+}
+
+function renderChart() {
+  if (chartInstance) chartInstance.destroy();
+  var ctx = document.getElementById('chart').getContext('2d');
+
+  if (currentChart === 0) {
+    var all = CATH_CHART.concat(customData.filter(function(d) { return d.type === 'cath'; }));
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: all.map(function(d) { return d.name; }),
+        datasets: [
+          { label: '理论 (mAh/g)', data: all.map(function(d) { return d.tc; }), backgroundColor: all.map(function(_, i) { return COLORS[i % COLORS.length] + 'bb'; }), borderRadius: 6 },
+          { label: '实际 (mAh/g)', data: all.map(function(d) { return d.ac; }), backgroundColor: all.map(function(_, i) { return COLORS[i % COLORS.length] + '66'; }), borderRadius: 6 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#5a7090', font: { size: 11 } } }, title: { display: true, text: '正极材料比容量对比', color: '#1a2a42', font: { size: 14 } } },
+        scales: { x: { ticks: { color: '#5a7090', font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }, y: { ticks: { color: '#5a7090' }, grid: { color: '#c8ddf055' } } }
+      }
+    });
+  } else if (currentChart === 1) {
+    var all2 = ANO_CHART.concat(customData.filter(function(d) { return d.type === 'ano'; }));
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: all2.map(function(d) { return d.name; }),
+        datasets: [
+          { label: '理论 (mAh/g)', data: all2.map(function(d) { return d.tc; }), backgroundColor: all2.map(function(_, i) { return COLORS[i % COLORS.length] + 'bb'; }), borderRadius: 6 },
+          { label: '实际 (mAh/g)', data: all2.map(function(d) { return d.ac; }), backgroundColor: all2.map(function(_, i) { return COLORS[i % COLORS.length] + '66'; }), borderRadius: 6 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#5a7090', font: { size: 11 } } }, title: { display: true, text: '负极材料比容量对比', color: '#1a2a42', font: { size: 14 } } },
+        scales: { x: { ticks: { color: '#5a7090', font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }, y: { ticks: { color: '#5a7090' }, grid: { color: '#c8ddf055' } } }
+      }
+    });
+  } else if (currentChart === 2) {
+    chartInstance = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: CATH_CHART.map(function(d, i) {
+          return { label: d.name, data: [{ x: d.ac, y: d.ae }], backgroundColor: COLORS[i], pointRadius: 10, pointHoverRadius: 14 };
+        })
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#5a7090', font: { size: 11 } } }, title: { display: true, text: '正极：实际比容量 vs 实际比能量', color: '#1a2a42', font: { size: 14 } } },
+        scales: {
+          x: { title: { display: true, text: 'mAh/g', color: '#5a7090' }, ticks: { color: '#5a7090' }, grid: { color: '#c8ddf055' } },
+          y: { title: { display: true, text: 'Wh/kg', color: '#5a7090' }, ticks: { color: '#5a7090' }, grid: { color: '#c8ddf055' } }
+        }
+      }
+    });
+  } else {
+    var labels = ['比容量', '比能量', '安全性', '成本', '循环寿命'];
+    chartInstance = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: CATH_CHART.slice(0, 5).map(function(d, i) {
+          return { label: d.name, data: d.radar, borderColor: COLORS[i], backgroundColor: COLORS[i] + '22', pointBackgroundColor: COLORS[i], borderWidth: 2 };
+        })
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#5a7090', font: { size: 11 } } }, title: { display: true, text: '正极材料多维性能', color: '#1a2a42', font: { size: 14 } } },
+        scales: { r: { ticks: { color: '#5a7090', backdropColor: 'transparent', font: { size: 9 } }, grid: { color: '#c8ddf055' }, pointLabels: { color: '#1a2a42', font: { size: 10 } }, suggestedMin: 0, suggestedMax: 10 } }
+      }
+    });
+  }
+}
+
+function addToChart(mod) {
+  var added = false;
+  if (mod === 'cat' || mod === 'all') {
+    if (window._lastCatCalc) {
+      var c = window._lastCatCalc;
+      customData.push({ type: 'cath', name: c.label + '(正极)', tc: c.Ctheory, ac: c.Cactual, ae: c.Eactual, radar: [Math.min(10, c.Cactual / 30), 5, 5, 5, 5] });
+      added = true;
+    } else if (mod === 'cat') { alert('请先在「正极材料计算」中完成计算'); }
+  }
+  if (mod === 'ano' || mod === 'all') {
+    if (window._lastAnoCalc) {
+      var c2 = window._lastAnoCalc;
+      customData.push({ type: 'ano', name: c2.label + '(负极)', tc: c2.Ctheory, ac: c2.Cactual, ae: c2.Eactual, radar: [Math.min(10, c2.Cactual / 200), 5, 5, 5, 5] });
+      added = true;
+    } else if (mod === 'ano') { alert('请先在「负极材料计算」中完成计算'); }
+  }
+  if (mod === 'req' || mod === 'all') {
+    if (window._lastReqCalc) {
+      var cc = window._lastReqCalc;
+      customData.push({ type: 'cath', name: cc.label + '(要求)', tc: cc.Ctheory, ac: cc.Cactual, ae: cc.Eactual, radar: [Math.min(10, cc.Cactual / 30), Math.min(10, cc.Eactual / 120), 5, 5, 5] });
+      added = true;
+    } else if (mod === 'req') { alert('请先在「理论性能计算」中完成计算'); }
+  }
+  if (!added && mod !== 'cat' && mod !== 'ano' && mod !== 'req') { alert('暂无可用数据，请先在各模块中完成计算'); return; }
+  if (added) { updateCalcList(); renderChart(); }
+}
+
+function resetChart() {
+  customData = [];
+  updateCalcList();
+  renderChart();
+}
+
+function updateCalcList() {
+  var el = document.getElementById('calc-list');
+  if (!customData.length) {
+    el.innerHTML = '暂无数据，请先在各模块中计算后，选择对应模块添加。';
+    return;
+  }
+  el.innerHTML = customData.map(function(d, i) {
+    var tag = d.name.indexOf('正极') >= 0 ? '🟢' : d.name.indexOf('负极') >= 0 ? '🔵' : '⚡';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:4px">' +
+      '<span style="font-weight:600;color:var(--ac);font-size:.82rem">' + tag + ' ' + d.name + '</span>' +
+      '<span style="font-size:.78rem">理论' + d.tc.toFixed(0) + ' 实际' + d.ac.toFixed(0) + ' mAh/g · ' + d.ae.toFixed(0) + ' Wh/kg</span>' +
+      '<span style="cursor:pointer;color:var(--rd);font-size:.75rem" onclick="removeFromChart(' + i + ')">✕</span></div>';
+  }).join('');
+}
+
+function removeFromChart(i) {
+  customData.splice(i, 1);
+  updateCalcList();
+  renderChart();
+}
+
+/* === 电池整包模块 === */
+function pkSw(i, el) {
+  document.querySelectorAll('.pk-page').forEach((p, j) => p.classList.toggle('on', j === i));
+  document.querySelectorAll('.pk-sub').forEach((b, j) => b.classList.toggle('on', j === i));
+  if (el) { el.classList.remove('bs'); el.classList.add('bp'); }
+  document.querySelectorAll('.pk-sub').forEach((b, j) => { if (j !== i) { b.classList.remove('bp'); b.classList.add('bs'); } });
+}
+
+var PK_TEMPLATES = {
+  '18650': { type:'cyl', dia:18, h:65, cap:2.6, cu:'Ah', mass:0.048, mu:'kg' },
+  '21700': { type:'cyl', dia:21, h:70, cap:5, cu:'Ah', mass:0.07, mu:'kg' },
+  '4680':  { type:'cyl', dia:46, h:80, cap:23, cu:'Ah', mass:0.355, mu:'kg' },
+  'pouch': { type:'pch', pl:130, pw:65, pt:7, cap:30, cu:'Ah', mass:0.45, mu:'kg' },
+  'prism': { type:'prs', l:100, w:50, ph:20, cap:20, cu:'Ah', mass:0.35, mu:'kg' }
+};
+function pkFill(k) {
+  var t = PK_TEMPLATES[k]; if (!t) return;
+  document.getElementById('pk-ty').value = t.type; pkTy();
+  document.getElementById('pk-cap').value = t.cap;
+  document.getElementById('pk-cu').value = t.cu;
+  document.getElementById('pk-m').value = t.mass;
+  document.getElementById('pk-mu').value = t.mu;
+  if (t.dia) { document.getElementById('pk-dia').value = t.dia; document.getElementById('pk-h').value = t.h; }
+  if (t.l) { document.getElementById('pk-l').value = t.l; document.getElementById('pk-w').value = t.w; document.getElementById('pk-ph').value = t.ph; }
+  if (t.pl) { document.getElementById('pk-pl').value = t.pl; document.getElementById('pk-pw').value = t.pw; document.getElementById('pk-pt').value = t.pt; }
+  document.querySelectorAll('#pk-tmpl .ch').forEach(function(c) { c.classList.remove('on'); });
+  if (event && event.target) event.target.classList.add('on');
+  pkCalc();
+}
+function pkTy() {
+  var v = document.getElementById('pk-ty').value;
+  document.getElementById('pk-cyl').style.display = v === 'cyl' ? '' : 'none';
+  document.getElementById('pk-prs').style.display = v === 'prs' ? '' : 'none';
+  document.getElementById('pk-pch').style.display = v === 'pch' ? '' : 'none';
+  pkCalc();
+}
+function pkGetVol() {
+  var v = document.getElementById('pk-ty').value;
+  if (v === 'cyl') { var d = +document.getElementById('pk-dia').value, h = +document.getElementById('pk-h').value; return Math.PI * Math.pow(d/2, 2) * h / 1e6; }
+  if (v === 'prs') { var l = +document.getElementById('pk-l').value, w = +document.getElementById('pk-w').value, h = +document.getElementById('pk-ph').value; return l * w * h / 1e6; }
+  var l = +document.getElementById('pk-pl').value, w = +document.getElementById('pk-pw').value, t = +document.getElementById('pk-pt').value; return l * w * t / 1e6;
+}
+function pkCalc() {
+  var errEl = document.getElementById('pk-err');
+  var cap = +document.getElementById('pk-cap').value;
+  if (document.getElementById('pk-cu').value === 'mAh') cap /= 1000;
+  var mass = +document.getElementById('pk-m').value;
+  if (document.getElementById('pk-mu').value === 'g') mass /= 1000;
+  var vol = pkGetVol();
+  if (!cap || !mass || !vol) { errEl.style.display = 'block'; errEl.textContent = '请确保所有参数大于0'; return; }
+  errEl.style.display = 'none';
+  var vcd = cap / vol, mcd = cap / mass;
+  document.getElementById('s-pk-cap').textContent = cap.toFixed(2) + ' Ah';
+  document.getElementById('s-pk-vol').textContent = (vol * 1000).toFixed(2) + ' mL';
+  document.getElementById('s-pk-mass').textContent = (mass * 1000).toFixed(1) + ' g';
+  document.getElementById('s-pk-vcd').textContent = vcd.toFixed(1) + ' Ah/L';
+  document.getElementById('pk-r-cap').textContent = cap.toFixed(3) + ' Ah';
+  document.getElementById('pk-r-vol').textContent = (vol * 1000).toFixed(2) + ' mL (' + vol.toFixed(4) + ' L)';
+  document.getElementById('pk-r-mass').textContent = (mass * 1000).toFixed(1) + ' g (' + mass.toFixed(4) + ' kg)';
+  document.getElementById('pk-r-vcd').textContent = vcd.toFixed(2) + ' Ah/L';
+  document.getElementById('pk-r-mcd').textContent = mcd.toFixed(2) + ' Ah/kg';
+  window._lastPkCap = { cap: cap, mass: mass, vol: vol, vcd: vcd, mcd: mcd };
+}
+
+var PK_ETEMPLATES = {
+  'lfp':    { cap:100, cu:'Ah', v:3.2, mass:2.0, mu:'kg', type:'prs', l:174, w:72, ph:118 },
+  'ncm523': { cap:50, cu:'Ah', v:3.6, mass:0.85, mu:'kg', type:'prs', l:148, w:91, ph:26 },
+  'ncm811': { cap:5, cu:'Ah', v:3.7, mass:0.07, mu:'kg', type:'cyl', dia:21, h:70 },
+  'nca':    { cap:3.5, cu:'Ah', v:3.6, mass:0.048, mu:'kg', type:'cyl', dia:18, h:65 },
+  'lco':    { cap:3, cu:'Ah', v:3.85, mass:0.052, mu:'kg', type:'pch', pl:65, pw:50, pt:5 }
+};
+function pkEFill(k) {
+  var t = PK_ETEMPLATES[k]; if (!t) return;
+  document.getElementById('pk-e-cap').value = t.cap;
+  document.getElementById('pk-e-cu').value = t.cu;
+  document.getElementById('pk-e-v').value = t.v;
+  document.getElementById('pk-e-m').value = t.mass;
+  document.getElementById('pk-e-mu').value = t.mu;
+  document.getElementById('pk-e-ty').value = t.type; pkETy();
+  if (t.dia) { document.getElementById('pk-e-dia').value = t.dia; document.getElementById('pk-e-h').value = t.h; }
+  if (t.l) { document.getElementById('pk-e-l').value = t.l; document.getElementById('pk-e-w').value = t.w; document.getElementById('pk-e-ph').value = t.ph; }
+  if (t.pl) { document.getElementById('pk-e-pl').value = t.pl; document.getElementById('pk-e-pw').value = t.pw; document.getElementById('pk-e-pt').value = t.pt; }
+  document.querySelectorAll('#pk-etmpl .ch').forEach(function(c) { c.classList.remove('on'); });
+  if (event && event.target) event.target.classList.add('on');
+  pkECalc();
+}
+function pkETy() {
+  var v = document.getElementById('pk-e-ty').value;
+  document.getElementById('pk-e-cyl').style.display = v === 'cyl' ? '' : 'none';
+  document.getElementById('pk-e-prs').style.display = v === 'prs' ? '' : 'none';
+  document.getElementById('pk-e-pch').style.display = v === 'pch' ? '' : 'none';
+  pkECalc();
+}
+function pkEGetVol() {
+  var v = document.getElementById('pk-e-ty').value;
+  if (v === 'cyl') { var d = +document.getElementById('pk-e-dia').value, h = +document.getElementById('pk-e-h').value; return Math.PI * Math.pow(d/2, 2) * h / 1e6; }
+  if (v === 'prs') { var l = +document.getElementById('pk-e-l').value, w = +document.getElementById('pk-e-w').value, h = +document.getElementById('pk-e-ph').value; return l * w * h / 1e6; }
+  var l = +document.getElementById('pk-e-pl').value, w = +document.getElementById('pk-e-pw').value, t = +document.getElementById('pk-e-pt').value; return l * w * t / 1e6;
+}
+function pkECalc() {
+  var errEl = document.getElementById('pk-e-err');
+  var cap = +document.getElementById('pk-e-cap').value;
+  if (document.getElementById('pk-e-cu').value === 'mAh') cap /= 1000;
+  var volt = +document.getElementById('pk-e-v').value;
+  var mass = +document.getElementById('pk-e-m').value;
+  if (document.getElementById('pk-e-mu').value === 'g') mass /= 1000;
+  var vol = pkEGetVol();
+  if (!cap || !volt || !mass || !vol) { errEl.style.display = 'block'; errEl.textContent = '请确保所有参数大于0'; return; }
+  errEl.style.display = 'none';
+  var energy = cap * volt, med = energy / mass, ved = energy / vol, vcd = cap / vol, mcd = cap / mass;
+  document.getElementById('s-pk-e').textContent = energy.toFixed(2) + ' Wh';
+  document.getElementById('s-pk-med').textContent = med.toFixed(1) + ' Wh/kg';
+  document.getElementById('s-pk-ved').textContent = ved.toFixed(1) + ' Wh/L';
+  document.getElementById('s-pk-uv').textContent = volt + 'V';
+  document.getElementById('pk-r-e').textContent = energy.toFixed(3) + ' Wh';
+  document.getElementById('pk-r-med').textContent = med.toFixed(2) + ' Wh/kg';
+  document.getElementById('pk-r-ved').textContent = ved.toFixed(2) + ' Wh/L';
+  document.getElementById('pk-r-cv').textContent = vcd.toFixed(2) + ' Ah/L';
+  document.getElementById('pk-r-cm').textContent = mcd.toFixed(2) + ' Ah/kg';
+  window._lastPkEnergy = { cap: cap, volt: volt, mass: mass, vol: vol, energy: energy, med: med, ved: ved, vcd: vcd, mcd: mcd };
+}
+
+function pkPackCalc() {
+  var cap = +document.getElementById('pk-pk-cap').value;
+  var v = +document.getElementById('pk-pk-v').value;
+  var ns = +document.getElementById('pk-pk-ns').value;
+  var np = +document.getElementById('pk-pk-np').value;
+  var eff = +document.getElementById('pk-pk-eff').value / 100;
+  var cm = +document.getElementById('pk-pk-cm').value;
+  if (!cap || !v || !ns || !np || !eff || !cm) return;
+  var pv = v * ns, pq = cap * np, pe = pv * pq * eff / 1000, pm = cm * ns * np, sed = pe / pm;
+  document.getElementById('pk-pk-pv').textContent = pv.toFixed(1) + ' V';
+  document.getElementById('pk-pk-pq').textContent = pq.toFixed(1) + ' Ah';
+  document.getElementById('pk-pk-pe').textContent = pe.toFixed(2) + ' kWh';
+  document.getElementById('pk-pk-pm').textContent = pm.toFixed(1) + ' kg';
+  document.getElementById('pk-pk-sed').textContent = sed.toFixed(1) + ' Wh/kg';
+  document.getElementById('pk-pack-process').innerHTML =
+    '<b>电池包成组计算</b><br>' +
+    'Ns=' + ns + ' 串, Np=' + np + ' 并<br><br>' +
+    'V<sub>pack</sub> = ' + v + ' × ' + ns + ' = <b>' + pv.toFixed(1) + ' V</b><br>' +
+    'Q<sub>pack</sub> = ' + cap + ' × ' + np + ' = <b>' + pq.toFixed(1) + ' Ah</b><br>' +
+    'E<sub>pack</sub> = ' + pv.toFixed(1) + ' × ' + pq.toFixed(1) + ' × ' + (eff * 100).toFixed(0) + '% / 1000 = <b>' + pe.toFixed(2) + ' kWh</b><br>' +
+    'm<sub>pack</sub> = ' + cm + ' × ' + (ns * np) + ' = <b>' + pm.toFixed(1) + ' kg</b><br>' +
+    'E_density = ' + pe.toFixed(2) + ' × 1000 / ' + pm.toFixed(1) + ' = <b>' + sed.toFixed(1) + ' Wh/kg</b>';
+}
+
+/* === 页面加载后自动计算 === */
+window.addEventListener('load', function() {
+  catCalc();
+  anoCalc();
+  reqCalcAll();
+  pkCalc();
+  pkECalc();
+  pkPackCalc();
+});
+</script>
+</body>
+</html>

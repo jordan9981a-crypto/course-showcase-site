@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>锂离子电池性能指标计算与分析平台</title>
+<style>
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --accent: #34a853;
+  --warn: #ea4335;
+  --orange: #fa7b17;
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text: #202124;
+  --text2: #5f6368;
+  --border: #dadce0;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height:1.6; }
+
+/* Navigation */
+.navbar { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(255,255,255,.95); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+.nav-inner { max-width:1200px; margin:0 auto; padding:0 20px; display:flex; align-items:center; height:60px; }
+.nav-logo { font-size:18px; font-weight:700; color:var(--primary); white-space:nowrap; }
+.nav-logo span { color:var(--accent); }
+.nav-links { display:flex; gap:4px; margin-left:auto; flex-wrap:nowrap; overflow-x:auto; }
+.nav-links a { padding:8px 14px; font-size:13px; color:var(--text2); text-decoration:none; border-radius:20px; white-space:nowrap; transition:.2s; }
+.nav-links a:hover, .nav-links a.active { background:var(--primary); color:#fff; }
+
+/* Hero */
+.hero { margin-top:60px; background:linear-gradient(135deg,#1a73e8 0%,#1557b0 50%,#0d47a1 100%); color:#fff; padding:60px 20px; text-align:center; }
+.hero h1 { font-size:clamp(24px,4vw,40px); margin-bottom:12px; }
+.hero p { font-size:clamp(14px,2vw,18px); opacity:.9; max-width:700px; margin:0 auto; }
+.hero-stats { display:flex; justify-content:center; gap:40px; margin-top:30px; flex-wrap:wrap; }
+.hero-stat { text-align:center; }
+.hero-stat .num { font-size:32px; font-weight:700; }
+.hero-stat .label { font-size:13px; opacity:.8; }
+
+/* Sections */
+.section { max-width:1200px; margin:0 auto; padding:50px 20px; }
+.section-title { font-size:clamp(20px,3vw,28px); font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+.section-title .icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; flex-shrink:0; }
+.section-sub { color:var(--text2); margin-bottom:30px; font-size:15px; }
+.divider { height:1px; background:var(--border); margin:0 20px; }
+
+/* Cards */
+.card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:28px; margin-bottom:20px; transition:.2s; }
+.card:hover { box-shadow:var(--shadow-lg); }
+.card h3 { font-size:18px; margin-bottom:12px; color:var(--primary); }
+.card h4 { font-size:15px; margin:16px 0 8px; color:var(--text); }
+
+/* Grid */
+.grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+.grid-4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+
+/* Indicator Cards */
+.indicator-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:24px; border-top:4px solid var(--primary); transition:.3s; }
+.indicator-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.indicator-card .ic-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:14px; }
+.indicator-card h3 { font-size:17px; margin-bottom:8px; }
+.indicator-card p { font-size:14px; color:var(--text2); }
+.indicator-card .formula { background:#f1f3f4; padding:10px 14px; border-radius:8px; font-family:"Courier New",monospace; font-size:13px; margin-top:12px; color:var(--text); border-left:3px solid var(--primary); }
+
+/* Tables */
+.table-wrap { overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); }
+table { width:100%; border-collapse:collapse; background:var(--card); font-size:14px; }
+thead { background:var(--primary); color:#fff; }
+th { padding:14px 16px; text-align:left; font-weight:600; white-space:nowrap; }
+td { padding:12px 16px; border-bottom:1px solid #f0f0f0; }
+tbody tr:hover { background:#f8f9ff; }
+.tag { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:500; }
+.tag-pos { background:#e8f5e9; color:#2e7d32; }
+.tag-neg { background:#fff3e0; color:#e65100; }
+.tag-scene { background:#e3f2fd; color:#1565c0; }
+
+/* Form Controls */
+.calc-box { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:28px; }
+.calc-box h3 { font-size:18px; margin-bottom:6px; color:var(--primary); }
+.calc-box .desc { font-size:13px; color:var(--text2); margin-bottom:20px; }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:14px; font-weight:500; margin-bottom:6px; color:var(--text); }
+.form-group .hint { font-size:12px; color:var(--text2); margin-top:4px; }
+.input-row { display:flex; gap:8px; align-items:center; }
+input[type="number"], select { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:15px; outline:none; transition:.2s; background:#fff; }
+input[type="number"]:focus, select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,115,232,.15); }
+.btn { padding:12px 28px; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:.2s; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-dark); transform:translateY(-1px); }
+.btn-accent { background:var(--accent); color:#fff; }
+.btn-accent:hover { background:#2d9249; }
+.btn-sm { padding:8px 16px; font-size:13px; }
+.btn-outline { background:transparent; border:1px solid var(--border); color:var(--text2); }
+.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+.btn-group { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+
+/* Results */
+.result-box { background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:1px solid #c8e6c9; border-radius:10px; padding:20px; margin-top:18px; display:none; }
+.result-box.show { display:block; animation:fadeIn .3s; }
+.result-value { font-size:28px; font-weight:700; color:var(--accent); }
+.result-label { font-size:14px; color:var(--text2); }
+.result-detail { font-size:13px; color:var(--text2); margin-top:8px; line-height:1.8; }
+
+/* Comparison */
+.compare-bar { display:flex; align-items:center; margin-bottom:10px; }
+.compare-bar .bar-label { width:100px; font-size:13px; flex-shrink:0; }
+.compare-bar .bar-track { flex:1; height:24px; background:#f1f3f4; border-radius:12px; overflow:hidden; position:relative; }
+.compare-bar .bar-fill { height:100%; border-radius:12px; transition:width .6s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font-size:11px; color:#fff; font-weight:600; min-width:40px; }
+.compare-bar .bar-val { margin-left:10px; font-size:13px; font-weight:600; width:80px; text-align:right; flex-shrink:0; }
+
+/* Matching Module */
+.match-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:24px; border-left:4px solid var(--primary); }
+.match-card h3 { font-size:16px; margin-bottom:10px; }
+.match-card .match-tag { display:inline-block; padding:3px 12px; border-radius:12px; font-size:12px; margin-right:6px; margin-bottom:6px; }
+.match-card ul { padding-left:20px; font-size:14px; color:var(--text2); }
+.match-card ul li { margin-bottom:6px; }
+
+/* Tabs */
+.tab-nav { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+.tab-btn { padding:12px 20px; font-size:14px; font-weight:500; border:none; background:none; cursor:pointer; color:var(--text2); border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:.2s; }
+.tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; animation:fadeIn .3s; }
+
+/* Error Analysis */
+.error-card { background:#fff8e1; border:1px solid #ffe082; border-radius:10px; padding:18px; margin-top:14px; }
+.error-card h4 { color:#f57f17; font-size:15px; margin-bottom:8px; }
+
+/* Evaluation Module */
+.eval-radar { display:flex; justify-content:center; margin:20px 0; }
+.eval-radar canvas { max-width:100%; }
+.score-ring { width:100px; height:100px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; color:#fff; margin:0 auto 12px; }
+.score-section { text-align:center; padding:16px; }
+.score-bar-row { display:flex; align-items:center; margin-bottom:10px; }
+.score-bar-row .sb-label { width:80px; font-size:13px; font-weight:500; flex-shrink:0; }
+.score-bar-row .sb-track { flex:1; height:20px; background:#f1f3f4; border-radius:10px; overflow:hidden; margin:0 10px; }
+.score-bar-row .sb-fill { height:100%; border-radius:10px; transition:width .8s ease; }
+.score-bar-row .sb-val { width:45px; font-size:14px; font-weight:700; text-align:right; flex-shrink:0; }
+.eval-scene-card { background:#f8f9fa; border-radius:10px; padding:16px; margin-top:8px; border-left:4px solid var(--primary); }
+.eval-scene-card h4 { font-size:15px; margin-bottom:6px; }
+.eval-scene-card p { font-size:13px; color:var(--text2); }
+.eval-rank { display:inline-flex; align-items:center; gap:6px; padding:4px 14px; border-radius:16px; font-size:13px; font-weight:600; }
+.rank-s { background:#e8f5e9; color:#1b5e20; }
+.rank-a { background:#e3f2fd; color:#0d47a1; }
+.rank-b { background:#fff8e1; color:#f57f17; }
+.rank-c { background:#fbe9e7; color:#bf360c; }
+.rank-d { background:#f3e5f5; color:#6a1b9a; }
+.scene-match { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+.scene-chip { padding:8px 16px; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; }
+.scene-chip .match-pct { font-size:11px; opacity:.8; }
+
+/* Footer */
+.footer { background:#1a1a2e; color:rgba(255,255,255,.7); padding:40px 20px; text-align:center; font-size:13px; }
+.footer a { color:var(--primary); text-decoration:none; }
+
+/* Animations */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* Quick-fill buttons */
+.quick-fill { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.quick-fill .qf-btn { padding:5px 12px; font-size:12px; border:1px solid var(--border); border-radius:16px; background:#fff; cursor:pointer; transition:.2s; }
+.quick-fill .qf-btn:hover { border-color:var(--primary); color:var(--primary); background:#e8f0fe; }
+
+/* Responsive */
+@media(max-width:768px) {
+  .nav-links { display:none; }
+  .hero { padding:40px 16px; }
+  .hero-stats { gap:20px; }
+  .section { padding:30px 16px; }
+  .grid-2 { grid-template-columns:1fr; }
+  .grid-4 { grid-template-columns:repeat(2,1fr); }
+  .input-row { flex-direction:column; }
+  .compare-bar .bar-label { width:70px; font-size:12px; }
+  .nav-inner { position:relative; }
+  .mobile-menu-btn { display:block; margin-left:auto; background:none; border:none; font-size:22px; cursor:pointer; padding:8px; }
+}
+@media(min-width:769px) {
+  .mobile-menu-btn { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">LiB<span>Calc</span> 锂电池性能计算平台</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#theory">理论指标</a>
+      <a href="#materials">材料参数库</a>
+      <a href="#capacity">比容量计算</a>
+      <a href="#energy">能量密度</a>
+      <a href="#power">功率密度</a>
+      <a href="#compare">体系对比</a>
+      <a href="#evaluate">材料评估</a>
+      <a href="#matching">匹配设计</a>
+    </div>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <h1>锂离子电池性能指标计算与分析平台</h1>
+  <p>基于法拉第定律与电化学理论，集成材料参数库、性能计算、体系对比与设计匹配于一体的专业工具。小组成员：熊瑞、郑天昊、韦继点</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">21</div><div class="label">电极材料体系</div></div>
+    <div class="hero-stat"><div class="num">7</div><div class="label">核心功能模块</div></div>
+    <div class="hero-stat"><div class="num">5</div><div class="label">评估维度</div></div>
+    <div class="hero-stat"><div class="num">6</div><div class="label">场景智能匹配</div></div>
+  </div>
+</section>
+
+<!-- ==================== 模块1: 性能指标理论定义 ==================== -->
+<section class="section" id="theory">
+  <div class="section-title">
+    <div class="icon" style="background:var(--primary)">📐</div>
+    四大核心性能指标理论定义
+  </div>
+  <p class="section-sub">锂离子电池的四大核心评价指标决定其在不同应用场景中的适用性</p>
+
+  <div class="grid-4">
+    <div class="indicator-card" style="border-top-color:#1a73e8">
+      <div class="ic-icon" style="background:#e8f0fe;color:#1a73e8">⚡</div>
+      <h3>理论比容量</h3>
+      <p><strong>定义：</strong>单位质量电极活性材料在完全发生电化学反应时，理论上所能提供的电荷量，单位为 mAh/g。</p>
+      <p style="margin-top:8px"><strong>物理意义：</strong>反映电极材料储存锂离子的能力上限，是评价活性材料电荷储存能力的基础指标。</p>
+      <p style="margin-top:8px"><strong>应用价值：</strong>用于材料筛选与电池初步设计，比容量越高，单位质量材料可储存的能量越多。</p>
+      <div class="formula">Q = nF / (3.6M)<br>Q: 比容量(mAh/g), n: 电子转移数, F: 法拉第常数(96485 C/mol), M: 摩尔质量(g/mol)</div>
+    </div>
+
+    <div class="indicator-card" style="border-top-color:#34a853">
+      <div class="ic-icon" style="background:#e8f5e9;color:#34a853">🔋</div>
+      <h3>平均工作电压</h3>
+      <p><strong>定义：</strong>电池在正常工作条件下，放电过程中正负极电位差的加权平均值，单位为 V。</p>
+      <p style="margin-top:8px"><strong>物理意义：</strong>由正负极材料的电化学电位差决定，反映电池的电驱动力大小。平均电压 = E<sub>正极</sub> − E<sub>负极</sub>（vs. Li/Li⁺）。</p>
+      <p style="margin-top:8px"><strong>应用价值：</strong>影响电池的输出能量和功率，高电压体系可在相同容量下提供更高能量密度。</p>
+      <div class="formula">V<sub>avg</sub> = E<sub>cathode</sub> − E<sub>anode</sub> (vs. Li/Li⁺)<br>正极电位越高、负极电位越低，电池工作电压越高</div>
+    </div>
+
+    <div class="indicator-card" style="border-top-color:#fa7b17">
+      <div class="ic-icon" style="background:#fef7e0;color:#fa7b17">🔥</div>
+      <h3>能量密度</h3>
+      <p><strong>定义：</strong>单位质量（或体积）电池所能输出的总电能，质量能量密度单位为 Wh/kg，体积能量密度单位为 Wh/L。</p>
+      <p style="margin-top:8px"><strong>物理意义：</strong>综合反映电池电压与容量的乘积效应，是衡量电池"续航能力"的最核心指标。</p>
+      <p style="margin-top:8px"><strong>应用价值：</strong>直接决定电动汽车续航里程、手机使用时长等关键用户体验指标。</p>
+      <div class="formula">W = V<sub>avg</sub> × Q<br>W: 能量密度(Wh/kg), V<sub>avg</sub>: 平均电压(V), Q: 比容量(Ah/kg)</div>
+    </div>
+
+    <div class="indicator-card" style="border-top-color:#ea4335">
+      <div class="ic-icon" style="background:#fce8e6;color:#ea4335">⚙️</div>
+      <h3>功率密度</h3>
+      <p><strong>定义：</strong>单位质量（或体积）电池在单位时间内所能输出的最大功率，单位为 W/kg 或 W/L。</p>
+      <p style="margin-top:8px"><strong>物理意义：</strong>反映电池的瞬时放电能力与倍率特性，体现电极反应动力学与离子传输速率。</p>
+      <p style="margin-top:8px"><strong>应用价值：</strong>决定电池的快充能力和大功率放电性能，动力电池加速性能和储能电池调频响应的关键参数。</p>
+      <div class="formula">P = P<sub>discharge</sub> / m<br>P: 功率密度(W/kg), P<sub>discharge</sub>: 放电功率(W), m: 电池质量(kg)</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块2: 正负极材料参数库 ==================== -->
+<section class="section" id="materials">
+  <div class="section-title">
+    <div class="icon" style="background:var(--accent)">📊</div>
+    正负极电极材料参数库
+  </div>
+  <p class="section-sub">涵盖主流正极与负极材料的核心参数，数据来源于课堂教学内容与权威文献</p>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('cathode')">正极材料</button>
+    <button class="tab-btn" onclick="switchTab('anode')">负极材料</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-cathode">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>材料名称</th>
+            <th>化学式</th>
+            <th>理论比容量 (mAh/g)</th>
+            <th>平均电压 (V vs. Li/Li⁺)</th>
+            <th>电子转移数 n</th>
+            <th>摩尔质量 (g/mol)</th>
+            <th>优点</th>
+            <th>缺点</th>
+            <th>适用场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>磷酸铁锂 (LFP)</strong></td>
+            <td>LiFePO₄</td>
+            <td>170</td>
+            <td>3.4</td>
+            <td>1</td>
+            <td>157.76</td>
+            <td><span class="tag tag-pos">安全性高</span> <span class="tag tag-pos">循环寿命长</span> <span class="tag tag-pos">成本低</span></td>
+            <td><span class="tag tag-neg">能量密度偏低</span> <span class="tag tag-neg">低温性能差</span></td>
+            <td><span class="tag tag-scene">储能电站</span> <span class="tag tag-scene">商用车</span> <span class="tag tag-scene">电动大巴</span></td>
+          </tr>
+          <tr>
+            <td><strong>三元 NCM622</strong></td>
+            <td>LiNi₀.₆Co₀.₂Mn₀.₂O₂</td>
+            <td>180</td>
+            <td>3.7</td>
+            <td>1</td>
+            <td>96.46</td>
+            <td><span class="tag tag-pos">能量密度较高</span> <span class="tag tag-pos">综合性能均衡</span></td>
+            <td><span class="tag tag-neg">钴含量较高</span> <span class="tag tag-neg">热稳定性一般</span></td>
+            <td><span class="tag tag-scene">中高端电动车</span> <span class="tag tag-scene">电动工具</span></td>
+          </tr>
+          <tr>
+            <td><strong>三元 NCM811</strong></td>
+            <td>LiNi₀.₈Co₀.₁Mn₀.₁O₂</td>
+            <td>200</td>
+            <td>3.7</td>
+            <td>1</td>
+            <td>96.01</td>
+            <td><span class="tag tag-pos">能量密度高</span> <span class="tag tag-pos">低钴</span></td>
+            <td><span class="tag tag-neg">热稳定性差</span> <span class="tag tag-neg">循环衰减快</span> <span class="tag tag-neg">安全风险高</span></td>
+            <td><span class="tag tag-scene">高端电动车</span> <span class="tag tag-scene">长续航需求</span></td>
+          </tr>
+          <tr>
+            <td><strong>钴酸锂 (LCO)</strong></td>
+            <td>LiCoO₂</td>
+            <td>274</td>
+            <td>3.9</td>
+            <td>1</td>
+            <td>97.87</td>
+            <td><span class="tag tag-pos">体积能量密度高</span> <span class="tag tag-pos">电压平台高</span> <span class="tag tag-pos">工艺成熟</span></td>
+            <td><span class="tag tag-neg">钴资源稀缺昂贵</span> <span class="tag tag-neg">实际仅可利用约50%容量</span></td>
+            <td><span class="tag tag-scene">手机</span> <span class="tag tag-scene">笔记本电脑</span> <span class="tag tag-scene">消费电子</span></td>
+          </tr>
+          <tr>
+            <td><strong>锰酸锂 (LMO)</strong></td>
+            <td>LiMn₂O₄</td>
+            <td>148</td>
+            <td>4.0</td>
+            <td>1</td>
+            <td>180.81</td>
+            <td><span class="tag tag-pos">成本低</span> <span class="tag tag-pos">倍率性能好</span> <span class="tag tag-pos">安全性好</span></td>
+            <td><span class="tag tag-neg">容量低</span> <span class="tag tag-neg">高温锰溶解</span></td>
+            <td><span class="tag tag-scene">电动工具</span> <span class="tag tag-scene">混合动力车</span></td>
+          </tr>
+          <tr>
+            <td><strong>三元 NCM523</strong></td>
+            <td>LiNi₀.₅Co₀.₂Mn₀.₃O₂</td>
+            <td>170</td>
+            <td>3.65</td>
+            <td>1</td>
+            <td>96.68</td>
+            <td><span class="tag tag-pos">性价比高</span> <span class="tag tag-pos">热稳定性较好</span> <span class="tag tag-pos">工艺成熟</span></td>
+            <td><span class="tag tag-neg">能量密度一般</span> <span class="tag tag-neg">含钴</span></td>
+            <td><span class="tag tag-scene">中端电动车</span> <span class="tag tag-scene">电动两轮车</span></td>
+          </tr>
+          <tr>
+            <td><strong>镍钴铝 (NCA)</strong></td>
+            <td>LiNi₀.₈Co₀.₁₅Al₀.₀₅O₂</td>
+            <td>200</td>
+            <td>3.7</td>
+            <td>1</td>
+            <td>95.63</td>
+            <td><span class="tag tag-pos">能量密度高</span> <span class="tag tag-pos">循环性能好</span></td>
+            <td><span class="tag tag-neg">热稳定性差</span> <span class="tag tag-neg">对湿度敏感</span> <span class="tag tag-neg">制备工艺复杂</span></td>
+            <td><span class="tag tag-scene">Tesla车型</span> <span class="tag tag-scene">高端电动车</span></td>
+          </tr>
+          <tr>
+            <td><strong>磷酸锰铁锂 (LMFP)</strong></td>
+            <td>LiMn₀.₇Fe₀.₃PO₄</td>
+            <td>170</td>
+            <td>3.8</td>
+            <td>1</td>
+            <td>158.56</td>
+            <td><span class="tag tag-pos">电压平台高于LFP</span> <span class="tag tag-pos">安全性好</span> <span class="tag tag-pos">成本低</span></td>
+            <td><span class="tag tag-neg">导电性差</span> <span class="tag tag-neg">锰溶解问题</span> <span class="tag tag-neg">低温性能待优化</span></td>
+            <td><span class="tag tag-scene">下一代储能</span> <span class="tag tag-scene">中端电动车</span></td>
+          </tr>
+          <tr>
+            <td><strong>富锂锰基 (LMR)</strong></td>
+            <td>Li₁.₂Mn₀.₅₄Ni₀.₁₃Co₀.₁₃O₂</td>
+            <td>250</td>
+            <td>3.5</td>
+            <td>1</td>
+            <td>86.97</td>
+            <td><span class="tag tag-pos">比容量极高</span> <span class="tag tag-pos">成本低(富锰)</span></td>
+            <td><span class="tag tag-neg">首效低(~75%)</span> <span class="tag tag-neg">电压衰减严重</span> <span class="tag tag-neg">倍率差</span></td>
+            <td><span class="tag tag-scene">前沿研究</span> <span class="tag tag-scene">下一代高能量电池</span></td>
+          </tr>
+          <tr>
+            <td><strong>钒酸锂 (LVP)</strong></td>
+            <td>Li₃V₂(PO₄)₃</td>
+            <td>197</td>
+            <td>3.8</td>
+            <td>3</td>
+            <td>437.73</td>
+            <td><span class="tag tag-pos">电压平台高</span> <span class="tag tag-pos">离子电导率高</span> <span class="tag tag-pos">结构稳定</span></td>
+            <td><span class="tag tag-neg">钒有毒性</span> <span class="tag tag-neg">电子电导率低</span></td>
+            <td><span class="tag tag-scene">特种电池</span> <span class="tag tag-scene">研究方向</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-anode">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>材料名称</th>
+            <th>化学式/类型</th>
+            <th>理论比容量 (mAh/g)</th>
+            <th>工作电压 (V vs. Li/Li⁺)</th>
+            <th>电子转移数 n</th>
+            <th>摩尔质量 (g/mol)</th>
+            <th>优点</th>
+            <th>缺点</th>
+            <th>适用场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>人造石墨</strong></td>
+            <td>C (LiC₆)</td>
+            <td>372</td>
+            <td>0.1</td>
+            <td>1</td>
+            <td>72.06</td>
+            <td><span class="tag tag-pos">循环稳定性好</span> <span class="tag tag-pos">一致性高</span> <span class="tag tag-pos">成本可控</span></td>
+            <td><span class="tag tag-neg">容量接近理论上限</span> <span class="tag tag-neg">低温析锂风险</span></td>
+            <td><span class="tag tag-scene">动力电池主流</span> <span class="tag tag-scene">消费电子</span></td>
+          </tr>
+          <tr>
+            <td><strong>天然石墨</strong></td>
+            <td>C (LiC₆)</td>
+            <td>372</td>
+            <td>0.1</td>
+            <td>1</td>
+            <td>72.06</td>
+            <td><span class="tag tag-pos">成本低</span> <span class="tag tag-pos">容量高</span> <span class="tag tag-pos">导电性好</span></td>
+            <td><span class="tag tag-neg">膨胀率大</span> <span class="tag tag-neg">与电解液相容性差</span> <span class="tag tag-neg">倍率性能较差</span></td>
+            <td><span class="tag tag-scene">消费电子</span> <span class="tag tag-scene">低成本储能</span></td>
+          </tr>
+          <tr>
+            <td><strong>硅碳负极</strong></td>
+            <td>Si/C 复合</td>
+            <td>1500</td>
+            <td>0.2</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="tag tag-pos">容量极高</span> <span class="tag tag-pos">提升能量密度显著</span></td>
+            <td><span class="tag tag-neg">体积膨胀大(~300%)</span> <span class="tag tag-neg">循环衰减快</span> <span class="tag tag-neg">首效低</span></td>
+            <td><span class="tag tag-scene">高端电动车</span> <span class="tag tag-scene">下一代电池</span></td>
+          </tr>
+          <tr>
+            <td><strong>纯硅负极</strong></td>
+            <td>Si (Li₁₅Si₄)</td>
+            <td>3579</td>
+            <td>0.3</td>
+            <td>3.75</td>
+            <td>28.09</td>
+            <td><span class="tag tag-pos">理论容量最高</span></td>
+            <td><span class="tag tag-neg">体积膨胀~300%</span> <span class="tag tag-neg">粉化严重</span> <span class="tag tag-neg">SEI不稳定</span></td>
+            <td><span class="tag tag-scene">前沿研究</span> <span class="tag tag-scene">实验室阶段</span></td>
+          </tr>
+          <tr>
+            <td><strong>钛酸锂 (LTO)</strong></td>
+            <td>Li₄Ti₅O₁₂</td>
+            <td>175</td>
+            <td>1.55</td>
+            <td>3</td>
+            <td>459.07</td>
+            <td><span class="tag tag-pos">零应变材料</span> <span class="tag tag-pos">超长寿命</span> <span class="tag tag-pos">安全性极高</span> <span class="tag tag-pos">快充性能好</span></td>
+            <td><span class="tag tag-neg">电压平台高导致能量密度低</span> <span class="tag tag-neg">成本高</span></td>
+            <td><span class="tag tag-scene">电动公交</span> <span class="tag tag-scene">储能调频</span> <span class="tag tag-scene">快充场景</span></td>
+          </tr>
+          <tr>
+            <td><strong>中间相碳微球 (MCMB)</strong></td>
+            <td>C (LiC₆)</td>
+            <td>372</td>
+            <td>0.1</td>
+            <td>1</td>
+            <td>72.06</td>
+            <td><span class="tag tag-pos">球形颗粒</span> <span class="tag tag-pos">压实密度高</span> <span class="tag tag-pos">倍率性能好</span></td>
+            <td><span class="tag tag-neg">成本高</span> <span class="tag tag-neg">产能有限</span></td>
+            <td><span class="tag tag-scene">高端消费电子</span> <span class="tag tag-scene">军工电池</span></td>
+          </tr>
+          <tr>
+            <td><strong>硬碳</strong></td>
+            <td>无定形碳</td>
+            <td>300</td>
+            <td>0.1</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="tag tag-pos">低温性能优异</span> <span class="tag tag-pos">不易析锂</span> <span class="tag tag-pos">兼容钠电</span></td>
+            <td><span class="tag tag-neg">首效低(~70-80%)</span> <span class="tag tag-neg">电压滞后大</span> <span class="tag tag-neg">成本较高</span></td>
+            <td><span class="tag tag-scene">低温电池</span> <span class="tag tag-scene">钠离子电池负极</span></td>
+          </tr>
+          <tr>
+            <td><strong>软碳</strong></td>
+            <td>无定形碳</td>
+            <td>250</td>
+            <td>0.2</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="tag tag-pos">快充性能好</span> <span class="tag tag-pos">与电解液相容好</span></td>
+            <td><span class="tag tag-neg">容量偏低</span> <span class="tag tag-neg">电压曲线倾斜</span></td>
+            <td><span class="tag tag-scene">快充电池</span> <span class="tag tag-scene">动力电池辅助</span></td>
+          </tr>
+          <tr>
+            <td><strong>氧化亚硅 (SiO)</strong></td>
+            <td>SiOₓ/C 复合</td>
+            <td>1500</td>
+            <td>0.25</td>
+            <td>—</td>
+            <td>44.08</td>
+            <td><span class="tag tag-pos">膨胀小于纯硅</span> <span class="tag tag-pos">循环性优于硅碳</span></td>
+            <td><span class="tag tag-neg">首效低(~73%)</span> <span class="tag tag-neg">需预锂化</span> <span class="tag tag-neg">成本高</span></td>
+            <td><span class="tag tag-scene">高端动力电池</span> <span class="tag tag-scene">高能量密度电芯</span></td>
+          </tr>
+          <tr>
+            <td><strong>锡基负极</strong></td>
+            <td>Sn (Li₄.₄Sn)</td>
+            <td>994</td>
+            <td>0.5</td>
+            <td>4.4</td>
+            <td>118.71</td>
+            <td><span class="tag tag-pos">容量高</span> <span class="tag tag-pos">导电性好</span></td>
+            <td><span class="tag tag-neg">体积膨胀大(~260%)</span> <span class="tag tag-neg">循环差</span> <span class="tag tag-neg">电压平台偏高</span></td>
+            <td><span class="tag tag-scene">研究探索</span> <span class="tag tag-scene">柔性电池</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块3: 理论比容量计算 ==================== -->
+<section class="section" id="capacity">
+  <div class="section-title">
+    <div class="icon" style="background:#fa7b17">🧮</div>
+    理论比容量计算
+  </div>
+  <p class="section-sub">基于法拉第定律，输入电子转移数与摩尔质量，自动计算电极材料理论比容量</p>
+
+  <div class="grid-2">
+    <div class="calc-box">
+      <h3>法拉第公式计算器</h3>
+      <div class="desc">Q = nF / (3.6M)，其中 F = 96485 C/mol（法拉第常数），3.6 为 C 到 mAh 的转换系数</div>
+
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">一键填充材料参数：</p>
+      <div class="quick-fill">
+        <button class="qf-btn" onclick="fillCapacity('LFP',1,157.76)">LFP</button>
+        <button class="qf-btn" onclick="fillCapacity('NCM523',1,96.68)">NCM523</button>
+        <button class="qf-btn" onclick="fillCapacity('NCM622',1,96.46)">NCM622</button>
+        <button class="qf-btn" onclick="fillCapacity('NCM811',1,96.01)">NCM811</button>
+        <button class="qf-btn" onclick="fillCapacity('NCA',1,95.63)">NCA</button>
+        <button class="qf-btn" onclick="fillCapacity('LCO',1,97.87)">LCO</button>
+        <button class="qf-btn" onclick="fillCapacity('LMO',1,180.81)">LMO</button>
+        <button class="qf-btn" onclick="fillCapacity('LMFP',1,158.56)">LMFP</button>
+        <button class="qf-btn" onclick="fillCapacity('LVP',3,437.73)">LVP</button>
+        <button class="qf-btn" onclick="fillCapacity('石墨(LiC₆)',1,72.06)">石墨</button>
+        <button class="qf-btn" onclick="fillCapacity('LTO',3,459.07)">LTO</button>
+        <button class="qf-btn" onclick="fillCapacity('纯硅',3.75,28.09)">纯硅</button>
+        <button class="qf-btn" onclick="fillCapacity('锡基',4.4,118.71)">锡基</button>
+      </div>
+
+      <div class="form-group">
+        <label>电子转移数 n</label>
+        <input type="number" id="cap_n" placeholder="例如: 1" step="0.01" min="0">
+        <div class="hint">每个分子式单元在充放电中转移的电子数</div>
+      </div>
+      <div class="form-group">
+        <label>材料摩尔质量 M (g/mol)</label>
+        <input type="number" id="cap_M" placeholder="例如: 157.76 (LFP)" step="0.01" min="0">
+        <div class="hint">电极活性材料的分子量</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="calcCapacity()">计算理论比容量</button>
+        <button class="btn btn-outline" onclick="clearCalc('capacity')">清空</button>
+      </div>
+
+      <div class="result-box" id="result-capacity">
+        <div class="result-label">理论比容量</div>
+        <div class="result-value" id="cap-result-val"></div>
+        <div class="result-detail" id="cap-result-detail"></div>
+      </div>
+
+      <div class="error-card" id="cap-error" style="display:none">
+        <h4>⚠ 理论值与实际值偏差说明</h4>
+        <p id="cap-error-text" style="font-size:13px;color:var(--text2);line-height:1.8;"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>计算原理说明</h3>
+      <h4>法拉第定律</h4>
+      <p style="font-size:14px;color:var(--text2);">法拉第定律指出：在电化学反应中，电极上沉积或溶解的物质质量与通过的电荷量成正比。对于锂离子电池电极材料，理论比容量表示每克活性材料完全参与反应时可提供的电荷量。</p>
+
+      <h4>推导过程</h4>
+      <p style="font-size:14px;color:var(--text2);">1 mol 活性材料转移 n mol 电子 → 电荷量 = nF (库仑)</p>
+      <p style="font-size:14px;color:var(--text2);">1 mol 材料质量 = M (g)</p>
+      <p style="font-size:14px;color:var(--text2);">每克材料提供电荷量 = nF/M (C/g)</p>
+      <p style="font-size:14px;color:var(--text2);">换算为 mAh：Q = nF/(3.6M) (mAh/g)</p>
+      <p style="font-size:14px;color:var(--text2);">其中 1 mAh = 3.6 C</p>
+
+      <h4>典型计算示例</h4>
+      <p style="font-size:14px;color:var(--text2);">以 LiFePO₄ 为例：n=1, M=157.76 g/mol</p>
+      <p style="font-size:14px;color:var(--text2);">Q = 1 × 96485 / (3.6 × 157.76) = <strong>169.89 mAh/g ≈ 170 mAh/g</strong></p>
+      <p style="font-size:14px;color:var(--text2);margin-top:8px;">以石墨 LiC₆ 为例：n=1, M=72.06 g/mol</p>
+      <p style="font-size:14px;color:var(--text2);">Q = 1 × 96485 / (3.6 × 72.06) = <strong>372.04 mAh/g ≈ 372 mAh/g</strong></p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块4: 电池能量密度计算 ==================== -->
+<section class="section" id="energy">
+  <div class="section-title">
+    <div class="icon" style="background:var(--accent)">🔋</div>
+    电池能量密度计算
+  </div>
+  <p class="section-sub">支持质量能量密度与体积能量密度双指标计算，适配不同正负极材料体系</p>
+
+  <div class="grid-2">
+    <div class="calc-box">
+      <h3>质量能量密度计算</h3>
+      <div class="desc">W<sub>m</sub> = V<sub>avg</sub> × Q，计算单位质量电池可输出的总电能</div>
+
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">一键填充电池体系：</p>
+      <div class="quick-fill">
+        <button class="qf-btn" onclick="fillEnergy('LFP/石墨',3.3,155)">LFP/石墨</button>
+        <button class="qf-btn" onclick="fillEnergy('NCM622/石墨',3.6,170)">NCM622/石墨</button>
+        <button class="qf-btn" onclick="fillEnergy('NCM811/石墨',3.6,190)">NCM811/石墨</button>
+        <button class="qf-btn" onclick="fillEnergy('NCM811/硅碳',3.6,210)">NCM811/硅碳</button>
+        <button class="qf-btn" onclick="fillEnergy('LCO/石墨',3.8,160)">LCO/石墨</button>
+      </div>
+
+      <div class="form-group">
+        <label>平均工作电压 V<sub>avg</sub> (V)</label>
+        <input type="number" id="energy_V" placeholder="例如: 3.6" step="0.01" min="0">
+        <div class="hint">正极与负极电位差的平均值</div>
+      </div>
+      <div class="form-group">
+        <label>电极比容量 Q (mAh/g)</label>
+        <input type="number" id="energy_Q" placeholder="例如: 170 (电池级实际容量)" step="0.01" min="0">
+        <div class="hint">电池级实际比容量（非单极理论值，需考虑正负极匹配与不可逆损失）</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="calcEnergy()">计算质量能量密度</button>
+        <button class="btn btn-outline" onclick="clearCalc('energy')">清空</button>
+      </div>
+
+      <div class="result-box" id="result-energy">
+        <div class="result-label">质量能量密度</div>
+        <div class="result-value" id="energy-result-val"></div>
+        <div class="result-detail" id="energy-result-detail"></div>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <h3>体积能量密度计算</h3>
+      <div class="desc">W<sub>v</sub> = W<sub>m</sub> × ρ，结合材料密度换算为单位体积能量</div>
+
+      <div class="form-group">
+        <label>质量能量密度 W<sub>m</sub> (Wh/kg)</label>
+        <input type="number" id="vol_energy_Wm" placeholder="由左侧计算结果填入或手动输入" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>电池平均密度 ρ (kg/L)</label>
+        <input type="number" id="vol_energy_rho" placeholder="例如: 2.5 (典型锂电池)" step="0.01" min="0">
+        <div class="hint">典型值：LFP电池 ~2.2-2.5 kg/L, 三元电池 ~2.5-3.0 kg/L</div>
+      </div>
+      <div class="quick-fill" style="margin-top:4px;">
+        <button class="qf-btn" onclick="document.getElementById('vol_energy_rho').value=2.3">LFP(2.3)</button>
+        <button class="qf-btn" onclick="document.getElementById('vol_energy_rho').value=2.7">三元(2.7)</button>
+        <button class="qf-btn" onclick="document.getElementById('vol_energy_rho').value=2.8">LCO(2.8)</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-accent" onclick="calcVolEnergy()">计算体积能量密度</button>
+        <button class="btn btn-outline" onclick="clearCalc('vol_energy')">清空</button>
+      </div>
+
+      <div class="result-box" id="result-vol-energy">
+        <div class="result-label">体积能量密度</div>
+        <div class="result-value" id="vol-energy-result-val"></div>
+        <div class="result-detail" id="vol-energy-result-detail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块5: 电池功率密度计算 ==================== -->
+<section class="section" id="power">
+  <div class="section-title">
+    <div class="icon" style="background:var(--warn)">⚙️</div>
+    电池功率密度计算
+  </div>
+  <p class="section-sub">评估电池快充与大功率放电性能，支持质量功率密度与体积功率密度双指标</p>
+
+  <div class="grid-2">
+    <div class="calc-box">
+      <h3>质量功率密度计算</h3>
+      <div class="desc">P<sub>m</sub> = P<sub>discharge</sub> / m，评价电池的瞬时输出能力</div>
+
+      <div class="form-group">
+        <label>电池放电功率 P<sub>discharge</sub> (W)</label>
+        <input type="number" id="power_P" placeholder="例如: 500" step="0.01" min="0">
+        <div class="hint">电池在特定倍率下的输出功率</div>
+      </div>
+      <div class="form-group">
+        <label>电池总质量 m (kg)</label>
+        <input type="number" id="power_m" placeholder="例如: 0.5" step="0.001" min="0">
+        <div class="hint">包含正负极、电解液、隔膜、集流体、外壳等全部质量</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="calcPower()">计算质量功率密度</button>
+        <button class="btn btn-outline" onclick="clearCalc('power')">清空</button>
+      </div>
+
+      <div class="result-box" id="result-power">
+        <div class="result-label">质量功率密度</div>
+        <div class="result-value" id="power-result-val"></div>
+        <div class="result-detail" id="power-result-detail"></div>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <h3>体积功率密度计算</h3>
+      <div class="desc">P<sub>v</sub> = P<sub>discharge</sub> / V<sub>battery</sub>，评价单位体积的功率输出能力</div>
+
+      <div class="form-group">
+        <label>电池放电功率 P<sub>discharge</sub> (W)</label>
+        <input type="number" id="vol_power_P" placeholder="例如: 500" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>电池总体积 V<sub>battery</sub> (L)</label>
+        <input type="number" id="vol_power_V" placeholder="例如: 0.2" step="0.001" min="0">
+        <div class="hint">电池的外部体积（长×宽×高换算为升）</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-accent" onclick="calcVolPower()">计算体积功率密度</button>
+        <button class="btn btn-outline" onclick="clearCalc('vol_power')">清空</button>
+      </div>
+
+      <div class="result-box" id="result-vol-power">
+        <div class="result-label">体积功率密度</div>
+        <div class="result-value" id="vol-power-result-val"></div>
+        <div class="result-detail" id="vol-power-result-detail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块6(加分): 不同电池体系性能对比 ==================== -->
+<section class="section" id="compare">
+  <div class="section-title">
+    <div class="icon" style="background:#9c27b0">📈</div>
+    电池体系性能对比分析
+  </div>
+  <p class="section-sub">直观对比 LFP、三元NCM、LCO、石墨、硅碳等体系的核心性能参数差异</p>
+
+  <div class="card">
+    <h3>正极材料性能对比</h3>
+    <h4>理论比容量 (mAh/g)</h4>
+    <div id="compare-cathode-cap"></div>
+    <h4 style="margin-top:20px">平均工作电压 (V vs. Li/Li⁺)</h4>
+    <div id="compare-cathode-volt"></div>
+    <h4 style="margin-top:20px">质量能量密度估算 (Wh/kg) — 正极材料级</h4>
+    <div id="compare-cathode-energy"></div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>负极材料性能对比</h3>
+    <h4>理论比容量 (mAh/g)</h4>
+    <div id="compare-anode-cap"></div>
+    <h4 style="margin-top:20px">工作电压 (V vs. Li/Li⁺)</h4>
+    <div id="compare-anode-volt"></div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3>全电池体系综合对比</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>电池体系</th>
+            <th>标称电压 (V)</th>
+            <th>实际能量密度 (Wh/kg)</th>
+            <th>循环寿命 (次)</th>
+            <th>安全性</th>
+            <th>成本</th>
+            <th>综合评级</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LFP/石墨</strong></td>
+            <td>3.2</td>
+            <td>140~180</td>
+            <td>3000~6000</td>
+            <td><span class="tag tag-pos">优秀</span></td>
+            <td><span class="tag tag-pos">较低</span></td>
+            <td>★★★★☆</td>
+          </tr>
+          <tr>
+            <td><strong>NCM622/石墨</strong></td>
+            <td>3.6</td>
+            <td>200~240</td>
+            <td>1500~3000</td>
+            <td><span class="tag tag-neg">一般</span></td>
+            <td><span class="tag tag-neg">较高</span></td>
+            <td>★★★★☆</td>
+          </tr>
+          <tr>
+            <td><strong>NCM811/石墨</strong></td>
+            <td>3.6</td>
+            <td>240~280</td>
+            <td>800~1500</td>
+            <td><span class="tag tag-neg">较差</span></td>
+            <td><span class="tag tag-neg">高</span></td>
+            <td>★★★☆☆</td>
+          </tr>
+          <tr>
+            <td><strong>NCM811/硅碳</strong></td>
+            <td>3.6</td>
+            <td>280~350</td>
+            <td>500~1000</td>
+            <td><span class="tag tag-neg">较差</span></td>
+            <td><span class="tag tag-neg">很高</span></td>
+            <td>★★★☆☆</td>
+          </tr>
+          <tr>
+            <td><strong>LCO/石墨</strong></td>
+            <td>3.7</td>
+            <td>180~220</td>
+            <td>500~1000</td>
+            <td><span class="tag tag-neg">一般</span></td>
+            <td><span class="tag tag-neg">很高</span></td>
+            <td>★★★☆☆</td>
+          </tr>
+          <tr>
+            <td><strong>LMO/LTO</strong></td>
+            <td>2.4</td>
+            <td>60~80</td>
+            <td>10000+</td>
+            <td><span class="tag tag-pos">极优</span></td>
+            <td><span class="tag tag-neg">高</span></td>
+            <td>★★★☆☆</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块: 电极材料智能评估 ==================== -->
+<section class="section" id="evaluate">
+  <div class="section-title">
+    <div class="icon" style="background:#e91e63">🏆</div>
+    电极材料智能评估与场景推荐
+  </div>
+  <p class="section-sub">输入您的电极材料参数，系统将从能量、功率、安全、寿命、成本五个维度进行评分，并推荐最佳适用场景</p>
+
+  <div class="grid-2">
+    <div class="calc-box">
+      <h3>材料参数输入</h3>
+      <div class="desc">填写材料核心参数，系统将自动计算性能指标并进行多维度评估打分</div>
+
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">一键填充已知材料（快速体验）：</p>
+      <div class="quick-fill">
+        <button class="qf-btn" onclick="fillEval('LFP正极',170,3.4,95,6000,30)">LFP</button>
+        <button class="qf-btn" onclick="fillEval('NCM811正极',200,3.7,40,1200,65)">NCM811</button>
+        <button class="qf-btn" onclick="fillEval('LCO正极',274,3.9,35,800,80)">LCO</button>
+        <button class="qf-btn" onclick="fillEval('NCM523正极',170,3.65,70,2500,50)">NCM523</button>
+        <button class="qf-btn" onclick="fillEval('NCA正极',200,3.7,38,1000,70)">NCA</button>
+        <button class="qf-btn" onclick="fillEval('LMO正极',148,4.0,85,1500,25)">LMO</button>
+        <button class="qf-btn" onclick="fillEval('LMFP正极',170,3.8,90,4000,32)">LMFP</button>
+        <button class="qf-btn" onclick="fillEval('石墨负极',372,0.1,90,3000,20)">石墨</button>
+        <button class="qf-btn" onclick="fillEval('硅碳负极',1500,0.2,30,500,85)">硅碳</button>
+        <button class="qf-btn" onclick="fillEval('LTO负极',175,1.55,99,15000,75)">LTO</button>
+      </div>
+
+      <div class="form-group">
+        <label>材料名称</label>
+        <input type="text" id="eval_name" placeholder="例如: 我的新型正极材料" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;outline:none;">
+      </div>
+      <div class="form-group">
+        <label>实际比容量 (mAh/g)</label>
+        <input type="number" id="eval_cap" placeholder="例如: 180" step="0.1" min="0">
+        <div class="hint">材料的实测可逆比容量（非理论值）</div>
+      </div>
+      <div class="form-group">
+        <label>平均工作电压 (V vs. Li/Li⁺)</label>
+        <input type="number" id="eval_volt" placeholder="例如: 3.7" step="0.01" min="0">
+        <div class="hint">充放电曲线的平均电压值</div>
+      </div>
+      <div class="form-group">
+        <label>安全性评分 (0-100)</label>
+        <input type="number" id="eval_safety" placeholder="例如: 80" min="0" max="100">
+        <div class="hint">综合考虑热稳定性、产气量、结构稳定性等。LFP≈95, NCM811≈40, LCO≈35</div>
+      </div>
+      <div class="form-group">
+        <label>预估循环寿命 (次数)</label>
+        <input type="number" id="eval_cycle" placeholder="例如: 2000" min="0">
+        <div class="hint">80% SOH 容量保持率对应的循环次数</div>
+      </div>
+      <div class="form-group">
+        <label>成本指数 (0-100，越高越贵)</label>
+        <input type="number" id="eval_cost" placeholder="例如: 50" min="0" max="100">
+        <div class="hint">综合原材料与加工成本。LFP≈30, NCM811≈65, LCO≈80, 硅碳≈85</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="evaluateMaterial()">开始评估</button>
+        <button class="btn btn-outline" onclick="clearEval()">清空</button>
+      </div>
+    </div>
+
+    <div id="eval-result-panel" style="display:none;">
+      <div class="calc-box" style="margin-bottom:20px;">
+        <h3 id="eval-result-title">评估结果</h3>
+
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin:16px 0;">
+          <div class="score-section">
+            <div class="score-ring" id="eval-total-ring">--</div>
+            <div style="font-size:14px;font-weight:600;" id="eval-total-label">综合评分</div>
+            <div id="eval-rank-badge" style="margin-top:6px;"></div>
+          </div>
+          <div style="flex:1;min-width:240px;" id="eval-dim-bars"></div>
+        </div>
+      </div>
+
+      <div class="calc-box" style="margin-bottom:20px;">
+        <h3>性能计算结果</h3>
+        <div id="eval-calc-results" style="font-size:14px;color:var(--text2);line-height:2;"></div>
+      </div>
+
+      <div class="calc-box" style="margin-bottom:20px;">
+        <h3>最佳适用场景推荐</h3>
+        <div id="eval-scene-list"></div>
+      </div>
+
+      <div class="calc-box">
+        <h3>综合评价与建议</h3>
+        <div id="eval-summary" style="font-size:14px;color:var(--text2);line-height:1.8;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== 模块7: 性能匹配设计原则 ==================== -->
+<section class="section" id="matching">
+  <div class="section-title">
+    <div class="icon" style="background:#009688">🎯</div>
+    性能匹配设计原则
+  </div>
+  <p class="section-sub">不同应用场景对电池性能的要求各有侧重，合理的材料选型与参数匹配是电池设计的核心</p>
+
+  <div class="grid-2">
+    <div class="match-card" style="border-left-color:#1a73e8">
+      <h3>🚗 动力电池 — 高能量型</h3>
+      <div>
+        <span class="match-tag" style="background:#e8f0fe;color:#1a73e8">长续航</span>
+        <span class="match-tag" style="background:#e8f0fe;color:#1a73e8">高比能</span>
+        <span class="match-tag" style="background:#e8f0fe;color:#1a73e8">轻量化</span>
+      </div>
+      <h4 style="font-size:14px;margin:12px 0 6px;">核心需求</h4>
+      <p style="font-size:14px;color:var(--text2)">追求高质量能量密度（≥200 Wh/kg），满足电动汽车长续航需求。</p>
+      <h4 style="font-size:14px;margin:12px 0 6px;">材料选型策略</h4>
+      <ul>
+        <li><strong>正极：</strong>选择高镍三元 NCM811 或 NCA，比容量 ≥200 mAh/g，电压平台 ~3.7V</li>
+        <li><strong>负极：</strong>硅碳复合负极（比容量 ~1000-1500 mAh/g）或石墨（372 mAh/g）</li>
+        <li><strong>设计逻辑：</strong>高容量正极 + 高容量负极 + 高电压 = 高能量密度，但需兼顾安全性与循环寿命</li>
+        <li><strong>典型体系：</strong>NCM811/硅碳，电池级能量密度可达 280-350 Wh/kg</li>
+      </ul>
+    </div>
+
+    <div class="match-card" style="border-left-color:#ea4335">
+      <h3>⚡ 快充电池 — 高功率型</h3>
+      <div>
+        <span class="match-tag" style="background:#fce8e6;color:#ea4335">大倍率</span>
+        <span class="match-tag" style="background:#fce8e6;color:#ea4335">快充</span>
+        <span class="match-tag" style="background:#fce8e6;color:#ea4335">高功率</span>
+      </div>
+      <h4 style="font-size:14px;margin:12px 0 6px;">核心需求</h4>
+      <p style="font-size:14px;color:var(--text2)">追求高功率密度（≥1000 W/kg），实现快速充电和大电流放电。</p>
+      <h4 style="font-size:14px;margin:12px 0 6px;">材料选型策略</h4>
+      <ul>
+        <li><strong>正极：</strong>LFP（橄榄石结构，锂离子一维扩散但纳米化后倍率优异）或 LMO（尖晶石结构，三维锂离子通道）</li>
+        <li><strong>负极：</strong>LTO（零应变，超快锂离子嵌入动力学）或纳米化石墨</li>
+        <li><strong>设计逻辑：</strong>选择离子扩散快、电荷转移阻抗低的材料体系，牺牲部分能量密度换取功率输出</li>
+        <li><strong>关键参数：</strong>降低电极厚度、增大活性材料比表面积、优化电解液离子电导率</li>
+      </ul>
+    </div>
+
+    <div class="match-card" style="border-left-color:#34a853">
+      <h3>📱 数码电池 — 高体积能量型</h3>
+      <div>
+        <span class="match-tag" style="background:#e8f5e9;color:#34a853">小体积</span>
+        <span class="match-tag" style="background:#e8f5e9;color:#34a853">高体积能量密度</span>
+        <span class="match-tag" style="background:#e8f5e9;color:#34a853">工艺成熟</span>
+      </div>
+      <h4 style="font-size:14px;margin:12px 0 6px;">核心需求</h4>
+      <p style="font-size:14px;color:var(--text2)">追求高体积能量密度（≥650 Wh/L），在有限空间内储存最多电能。</p>
+      <h4 style="font-size:14px;margin:12px 0 6px;">材料选型策略</h4>
+      <ul>
+        <li><strong>正极：</strong>LCO（层状结构，压实密度高，体积能量密度优势明显）</li>
+        <li><strong>负极：</strong>人造石墨（一致性好、膨胀小）或掺少量硅碳提升容量</li>
+        <li><strong>设计逻辑：</strong>优先选择高压实密度材料，配合高电压充电（4.4-4.5V截止），最大化单位体积储能</li>
+        <li><strong>典型应用：</strong>手机、平板电脑、TWS耳机、智能手表</li>
+      </ul>
+    </div>
+
+    <div class="match-card" style="border-left-color:#fa7b17">
+      <h3>🏭 储能电池 — 高安全长寿命型</h3>
+      <div>
+        <span class="match-tag" style="background:#fef7e0;color:#fa7b17">长循环</span>
+        <span class="match-tag" style="background:#fef7e0;color:#fa7b17">高安全</span>
+        <span class="match-tag" style="background:#fef7e0;color:#fa7b17">低成本</span>
+      </div>
+      <h4 style="font-size:14px;margin:12px 0 6px;">核心需求</h4>
+      <p style="font-size:14px;color:var(--text2)">追求超长循环寿命（≥4000次）与极致安全性，成本敏感。</p>
+      <h4 style="font-size:14px;margin:12px 0 6px;">材料选型策略</h4>
+      <ul>
+        <li><strong>正极：</strong>LFP（热稳定性好，不释氧，循环寿命长）</li>
+        <li><strong>负极：</strong>人造石墨（稳定可靠）或 LTO（超长寿命场景）</li>
+        <li><strong>设计逻辑：</strong>安全性和循环寿命优先于能量密度，选择结构稳定、热分解温度高的材料</li>
+        <li><strong>典型应用：</strong>电网储能、光伏配储、家庭储能系统、UPS</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>性能匹配设计"不可能三角"</h3>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:16px;">电池设计中，<strong>高能量密度、高功率密度、高安全性/长寿命</strong>三者难以同时兼顾。提升任一指标往往以牺牲另外一到两个指标为代价：</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>设计方向</th><th>获益</th><th>代价</th><th>典型措施</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>提高能量密度</td>
+            <td>续航增加</td>
+            <td>安全风险增大、寿命缩短</td>
+            <td>高镍正极、硅负极、高电压充电</td>
+          </tr>
+          <tr>
+            <td>提高功率密度</td>
+            <td>快充/动力性能增强</td>
+            <td>能量密度下降</td>
+            <td>薄涂布极片、纳米材料、高电导率电解液</td>
+          </tr>
+          <tr>
+            <td>提高安全性/寿命</td>
+            <td>可靠性增强</td>
+            <td>能量密度受限</td>
+            <td>LFP材料、厚涂覆隔膜、保守充放电窗口</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p><strong>锂离子电池性能指标计算与分析平台</strong></p>
+  <p style="margin-top:8px">储能电池技术课程 · 本科生小组AI实践大作业</p>
+  <p style="margin-top:4px">数据来源：课堂教学内容、教材及权威文献 | 仅供教学参考</p>
+  <p style="margin-top:16px;font-size:12px;opacity:.6;">© 2026 LiBCalc · Built with 熊瑞</p>
+</footer>
+
+<script>
+// ========== Material Data ==========
+const F = 96485; // Faraday constant (C/mol)
+
+const cathodeMaterials = [
+  { name:'LFP', cap:170, volt:3.4, color:'#4caf50' },
+  { name:'NCM523', cap:170, volt:3.65, color:'#42a5f5' },
+  { name:'NCM622', cap:180, volt:3.7, color:'#2196f3' },
+  { name:'NCM811', cap:200, volt:3.7, color:'#1565c0' },
+  { name:'NCA', cap:200, volt:3.7, color:'#0d47a1' },
+  { name:'LCO', cap:274, volt:3.9, color:'#9c27b0' },
+  { name:'LMO', cap:148, volt:4.0, color:'#ff9800' },
+  { name:'LMFP', cap:170, volt:3.8, color:'#66bb6a' },
+  { name:'富锂锰基', cap:250, volt:3.5, color:'#ef5350' },
+  { name:'LVP', cap:197, volt:3.8, color:'#ab47bc' }
+];
+
+const anodeMaterials = [
+  { name:'人造石墨', cap:372, volt:0.1, color:'#607d8b' },
+  { name:'天然石墨', cap:372, volt:0.1, color:'#78909c' },
+  { name:'MCMB', cap:372, volt:0.1, color:'#546e7a' },
+  { name:'硬碳', cap:300, volt:0.1, color:'#8d6e63' },
+  { name:'软碳', cap:250, volt:0.2, color:'#a1887f' },
+  { name:'硅碳复合', cap:1500, volt:0.2, color:'#e91e63' },
+  { name:'SiOx', cap:1500, volt:0.25, color:'#ec407a' },
+  { name:'纯硅', cap:3579, volt:0.3, color:'#f44336' },
+  { name:'锡基', cap:994, volt:0.5, color:'#ff7043' },
+  { name:'LTO', cap:175, volt:1.55, color:'#009688' }
+];
+
+// ========== Tab Switching ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ========== Quick Fill Functions ==========
+function fillCapacity(name, n, M) {
+  document.getElementById('cap_n').value = n;
+  document.getElementById('cap_M').value = M;
+}
+
+function fillEnergy(name, V, Q) {
+  document.getElementById('energy_V').value = V;
+  document.getElementById('energy_Q').value = Q;
+}
+
+// ========== Calculation Functions ==========
+function calcCapacity() {
+  const n = parseFloat(document.getElementById('cap_n').value);
+  const M = parseFloat(document.getElementById('cap_M').value);
+  if (!n || !M || n <= 0 || M <= 0) {
+    alert('请输入有效的电子转移数和摩尔质量（均须大于0）');
+    return;
+  }
+  const Q = (n * F) / (3.6 * M);
+  const resultBox = document.getElementById('result-capacity');
+  document.getElementById('cap-result-val').textContent = Q.toFixed(2) + ' mAh/g';
+  document.getElementById('cap-result-detail').innerHTML =
+    '计算过程：Q = n × F / (3.6 × M) = ' + n + ' × 96485 / (3.6 × ' + M + ') = <strong>' + Q.toFixed(2) + ' mAh/g</strong>';
+  resultBox.classList.add('show');
+
+  // Error analysis
+  const errorCard = document.getElementById('cap-error');
+  const actualRatio = (Q > 200) ? '60%~80%' : '85%~95%';
+  document.getElementById('cap-error-text').innerHTML =
+    '理论比容量 ' + Q.toFixed(2) + ' mAh/g 为理想状态下的最大值。实际可逆容量通常为理论值的 ' + actualRatio + '，主要偏差来源包括：<br>' +
+    '① <strong>首次不可逆容量损失</strong>：首次充放电时形成SEI膜消耗部分锂离子；<br>' +
+    '② <strong>结构稳定性限制</strong>：部分材料（如LCO）过度脱锂会导致结构坍塌，实际仅利用约50%理论容量；<br>' +
+    '③ <strong>动力学限制</strong>：大倍率充放电时，锂离子扩散不充分导致容量下降；<br>' +
+    '④ <strong>副反应消耗</strong>：电解液分解、活性锂损失等副反应持续消耗可用容量。';
+  errorCard.style.display = 'block';
+}
+
+function calcEnergy() {
+  const V = parseFloat(document.getElementById('energy_V').value);
+  const Q = parseFloat(document.getElementById('energy_Q').value);
+  if (!V || !Q || V <= 0 || Q <= 0) {
+    alert('请输入有效的平均工作电压和比容量（均须大于0）');
+    return;
+  }
+  const W = V * Q;
+  const resultBox = document.getElementById('result-energy');
+  document.getElementById('energy-result-val').textContent = W.toFixed(2) + ' Wh/kg';
+  document.getElementById('energy-result-detail').innerHTML =
+    '计算过程：W = V<sub>avg</sub> × Q = ' + V + ' V × ' + Q + ' mAh/g = ' + W.toFixed(2) + ' Wh/kg<br>' +
+    '(注：此处 Q 单位 mAh/g 等价于 Ah/kg，故 V × Q 直接得到 Wh/kg)';
+  resultBox.classList.add('show');
+
+  // Auto-fill volume energy density input
+  document.getElementById('vol_energy_Wm').value = W.toFixed(2);
+}
+
+function calcVolEnergy() {
+  const Wm = parseFloat(document.getElementById('vol_energy_Wm').value);
+  const rho = parseFloat(document.getElementById('vol_energy_rho').value);
+  if (!Wm || !rho || Wm <= 0 || rho <= 0) {
+    alert('请输入有效的质量能量密度和电池密度（均须大于0）');
+    return;
+  }
+  const Wv = Wm * rho;
+  const resultBox = document.getElementById('result-vol-energy');
+  document.getElementById('vol-energy-result-val').textContent = Wv.toFixed(2) + ' Wh/L';
+  document.getElementById('vol-energy-result-detail').innerHTML =
+    '计算过程：W<sub>v</sub> = W<sub>m</sub> × ρ = ' + Wm + ' Wh/kg × ' + rho + ' kg/L = <strong>' + Wv.toFixed(2) + ' Wh/L</strong>';
+  resultBox.classList.add('show');
+}
+
+function calcPower() {
+  const P = parseFloat(document.getElementById('power_P').value);
+  const m = parseFloat(document.getElementById('power_m').value);
+  if (!P || !m || P <= 0 || m <= 0) {
+    alert('请输入有效的放电功率和电池质量（均须大于0）');
+    return;
+  }
+  const Pm = P / m;
+  const resultBox = document.getElementById('result-power');
+  document.getElementById('power-result-val').textContent = Pm.toFixed(2) + ' W/kg';
+
+  let level = '';
+  if (Pm >= 3000) level = '极高功率，适用于混合动力车、电动工具等大倍率场景';
+  else if (Pm >= 1000) level = '高功率，满足快充和中等倍率动力需求';
+  else if (Pm >= 300) level = '中等功率，适用于常规动力电池和储能';
+  else level = '低功率，适用于小倍率长循环储能场景';
+
+  document.getElementById('power-result-detail').innerHTML =
+    '计算过程：P<sub>m</sub> = P / m = ' + P + ' W / ' + m + ' kg = <strong>' + Pm.toFixed(2) + ' W/kg</strong><br>' +
+    '性能评级：' + level;
+  resultBox.classList.add('show');
+}
+
+function calcVolPower() {
+  const P = parseFloat(document.getElementById('vol_power_P').value);
+  const V = parseFloat(document.getElementById('vol_power_V').value);
+  if (!P || !V || P <= 0 || V <= 0) {
+    alert('请输入有效的放电功率和电池体积（均须大于0）');
+    return;
+  }
+  const Pv = P / V;
+  const resultBox = document.getElementById('result-vol-power');
+  document.getElementById('vol-power-result-val').textContent = Pv.toFixed(2) + ' W/L';
+  document.getElementById('vol-power-result-detail').innerHTML =
+    '计算过程：P<sub>v</sub> = P / V = ' + P + ' W / ' + V + ' L = <strong>' + Pv.toFixed(2) + ' W/L</strong>';
+  resultBox.classList.add('show');
+}
+
+function clearCalc(section) {
+  const map = {
+    capacity: ['cap_n','cap_M'],
+    energy: ['energy_V','energy_Q'],
+    vol_energy: ['vol_energy_Wm','vol_energy_rho'],
+    power: ['power_P','power_m'],
+    vol_power: ['vol_power_P','vol_power_V']
+  };
+  (map[section] || []).forEach(id => document.getElementById(id).value = '');
+
+  const resultMap = {
+    capacity: 'result-capacity',
+    energy: 'result-energy',
+    vol_energy: 'result-vol-energy',
+    power: 'result-power',
+    vol_power: 'result-vol-power'
+  };
+  const rb = document.getElementById(resultMap[section]);
+  if (rb) rb.classList.remove('show');
+
+  if (section === 'capacity') {
+    const ec = document.getElementById('cap-error');
+    if (ec) ec.style.display = 'none';
+  }
+}
+
+// ========== Comparison Bar Charts ==========
+function renderBars(containerId, data, maxVal, unit, colorKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  data.forEach(item => {
+    const pct = Math.min((item.val / maxVal) * 100, 100);
+    const div = document.createElement('div');
+    div.className = 'compare-bar';
+    div.innerHTML =
+      '<div class="bar-label">' + item.name + '</div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + item.color + '">' + '</div></div>' +
+      '<div class="bar-val">' + item.val + ' ' + unit + '</div>';
+    container.appendChild(div);
+  });
+}
+
+// Render comparison charts on load
+function initComparisons() {
+  // Cathode capacity
+  renderBars('compare-cathode-cap',
+    cathodeMaterials.map(m => ({name:m.name, val:m.cap, color:m.color})),
+    290, 'mAh/g');
+  // Cathode voltage
+  renderBars('compare-cathode-volt',
+    cathodeMaterials.map(m => ({name:m.name, val:m.volt, color:m.color})),
+    4.5, 'V');
+  // Cathode energy (material-level estimate: cap * volt / 1000 * 1000 = cap * volt Wh/kg)
+  renderBars('compare-cathode-energy',
+    cathodeMaterials.map(m => ({name:m.name, val:Math.round(m.cap * m.volt), color:m.color})),
+    1200, 'Wh/kg');
+  // Anode capacity
+  renderBars('compare-anode-cap',
+    anodeMaterials.map(m => ({name:m.name, val:m.cap, color:m.color})),
+    3800, 'mAh/g');
+  // Anode voltage
+  renderBars('compare-anode-volt',
+    anodeMaterials.map(m => ({name:m.name, val:m.volt, color:m.color})),
+    2.0, 'V');
+}
+
+// ========== Smooth Scroll ==========
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+    // Update active state
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Active nav on scroll
+window.addEventListener('scroll', function() {
+  const sections = document.querySelectorAll('.section[id]');
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+
+// Mobile menu toggle
+function toggleMobileMenu() {
+  const links = document.getElementById('navLinks');
+  if (links.style.display === 'flex') {
+    links.style.display = 'none';
+  } else {
+    links.style.display = 'flex';
+    links.style.flexDirection = 'column';
+    links.style.position = 'absolute';
+    links.style.top = '60px';
+    links.style.left = '0';
+    links.style.right = '0';
+    links.style.background = '#fff';
+    links.style.padding = '12px';
+    links.style.boxShadow = '0 4px 12px rgba(0,0,0,.1)';
+    links.style.zIndex = '999';
+  }
+}
+
+// ========== Material Evaluation System ==========
+function fillEval(name, cap, volt, safety, cycle, cost) {
+  document.getElementById('eval_name').value = name;
+  document.getElementById('eval_cap').value = cap;
+  document.getElementById('eval_volt').value = volt;
+  document.getElementById('eval_safety').value = safety;
+  document.getElementById('eval_cycle').value = cycle;
+  document.getElementById('eval_cost').value = cost;
+}
+
+function clearEval() {
+  ['eval_name','eval_cap','eval_volt','eval_safety','eval_cycle','eval_cost'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('eval-result-panel').style.display = 'none';
+}
+
+function evaluateMaterial() {
+  const name = document.getElementById('eval_name').value.trim() || '未命名材料';
+  const cap = parseFloat(document.getElementById('eval_cap').value);
+  const volt = parseFloat(document.getElementById('eval_volt').value);
+  const safety = parseFloat(document.getElementById('eval_safety').value);
+  const cycle = parseFloat(document.getElementById('eval_cycle').value);
+  const cost = parseFloat(document.getElementById('eval_cost').value);
+
+  if (!cap || !volt || isNaN(safety) || !cycle || isNaN(cost)) {
+    alert('请完整填写所有参数');
+    return;
+  }
+  if (safety < 0 || safety > 100 || cost < 0 || cost > 100) {
+    alert('安全性评分和成本指数须在0~100范围内');
+    return;
+  }
+
+  // --- Dimension Scoring (each 0-100) ---
+  // 1. Energy score: based on material-level energy density (cap * volt)
+  const energyDensity = cap * volt; // Wh/kg at material level
+  // Benchmark: 100 Wh/kg → 10分, 400 → 50分, 800 → 85分, 1100+ → 100分
+  const energyScore = Math.min(100, Math.round(clampLerp(energyDensity, 50, 1100, 5, 100)));
+
+  // 2. Power score: higher voltage + moderate capacity + good safety (structural stability)
+  // Heuristic: high voltage materials tend to have better rate capability; LTO has 1.55V but great power
+  // Use voltage as primary proxy, penalize very high capacity (often means slow kinetics)
+  let powerScore;
+  if (volt >= 1.0) {
+    powerScore = Math.min(100, Math.round(clampLerp(volt, 2.5, 4.2, 30, 80) + (cap < 200 ? 15 : cap < 400 ? 10 : 0)));
+  } else {
+    // Anode: low voltage anodes — rate depends on structure
+    powerScore = Math.min(100, Math.round(50 + (cap < 400 ? 20 : cap < 1000 ? 0 : -15)));
+  }
+  // Adjust for safety (structurally stable = better rate)
+  powerScore = Math.min(100, Math.round(powerScore * 0.8 + safety * 0.2));
+
+  // 3. Safety score: direct input
+  const safetyScore = Math.round(safety);
+
+  // 4. Lifespan score: 500→20, 2000→55, 5000→80, 10000→95, 15000→100
+  const lifespanScore = Math.min(100, Math.round(clampLerp(cycle, 200, 15000, 10, 100)));
+
+  // 5. Cost score: invert cost index (low cost = high score)
+  const costScore = Math.round(100 - cost);
+
+  // --- Total Score (weighted) ---
+  const weights = { energy: 0.30, power: 0.15, safety: 0.25, lifespan: 0.15, cost: 0.15 };
+  const totalScore = Math.round(
+    energyScore * weights.energy +
+    powerScore * weights.power +
+    safetyScore * weights.safety +
+    lifespanScore * weights.lifespan +
+    costScore * weights.cost
+  );
+
+  // --- Rank ---
+  let rank, rankClass, rankLabel;
+  if (totalScore >= 85) { rank = 'S'; rankClass = 'rank-s'; rankLabel = '卓越 — 综合性能极为优异'; }
+  else if (totalScore >= 72) { rank = 'A'; rankClass = 'rank-a'; rankLabel = '优秀 — 综合性能突出'; }
+  else if (totalScore >= 58) { rank = 'B'; rankClass = 'rank-b'; rankLabel = '良好 — 适合特定场景'; }
+  else if (totalScore >= 40) { rank = 'C'; rankClass = 'rank-c'; rankLabel = '一般 — 存在明显短板'; }
+  else { rank = 'D'; rankClass = 'rank-d'; rankLabel = '较弱 — 需要显著改进'; }
+
+  // --- Render Results ---
+  document.getElementById('eval-result-panel').style.display = 'block';
+  document.getElementById('eval-result-title').textContent = '「' + name + '」评估报告';
+
+  // Total ring
+  const ring = document.getElementById('eval-total-ring');
+  const ringColor = totalScore >= 80 ? '#34a853' : totalScore >= 60 ? '#1a73e8' : totalScore >= 40 ? '#fa7b17' : '#ea4335';
+  ring.style.background = 'conic-gradient(' + ringColor + ' ' + (totalScore * 3.6) + 'deg, #e0e0e0 0deg)';
+  ring.textContent = totalScore;
+  document.getElementById('eval-total-label').textContent = '综合评分 / 100';
+  document.getElementById('eval-rank-badge').innerHTML = '<span class="eval-rank ' + rankClass + '">' + rank + '级 · ' + rankLabel + '</span>';
+
+  // Dimension bars
+  const dims = [
+    { label: '能量性能', score: energyScore, color: '#1a73e8' },
+    { label: '功率性能', score: powerScore, color: '#ea4335' },
+    { label: '安全性能', score: safetyScore, color: '#34a853' },
+    { label: '循环寿命', score: lifespanScore, color: '#fa7b17' },
+    { label: '成本优势', score: costScore, color: '#9c27b0' }
+  ];
+  let barsHtml = '';
+  dims.forEach(d => {
+    barsHtml += '<div class="score-bar-row">' +
+      '<div class="sb-label">' + d.label + '</div>' +
+      '<div class="sb-track"><div class="sb-fill" style="width:' + d.score + '%;background:' + d.color + '"></div></div>' +
+      '<div class="sb-val" style="color:' + d.color + '">' + d.score + '</div></div>';
+  });
+  document.getElementById('eval-dim-bars').innerHTML = barsHtml;
+
+  // Calc results
+  document.getElementById('eval-calc-results').innerHTML =
+    '<strong>材料级能量密度：</strong>' + energyDensity.toFixed(1) + ' Wh/kg （= ' + cap + ' mAh/g × ' + volt + ' V）<br>' +
+    '<strong>比容量水平：</strong>' + getCapLevel(cap) + '<br>' +
+    '<strong>电压平台：</strong>' + getVoltLevel(volt) + '<br>' +
+    '<strong>预估循环寿命：</strong>' + cycle + ' 次 （' + getCycleLevel(cycle) + '）<br>' +
+    '<strong>安全性水平：</strong>' + getSafetyLevel(safety) + '<br>' +
+    '<strong>成本水平：</strong>' + getCostLevel(cost);
+
+  // --- Scene Matching ---
+  const scenes = calcSceneMatch(energyScore, powerScore, safetyScore, lifespanScore, costScore, cap, volt, cycle);
+  let sceneHtml = '<div class="scene-match" style="margin-bottom:16px;">';
+  scenes.forEach((s, i) => {
+    const bgColors = ['#e8f5e9','#e3f2fd','#fff8e1','#fce8e6','#f3e5f5','#e0f7fa'];
+    const fgColors = ['#1b5e20','#0d47a1','#f57f17','#bf360c','#6a1b9a','#006064'];
+    sceneHtml += '<div class="scene-chip" style="background:' + bgColors[i % 6] + ';color:' + fgColors[i % 6] + '">' +
+      s.icon + ' ' + s.name + ' <span class="match-pct">' + s.match + '%匹配</span></div>';
+  });
+  sceneHtml += '</div>';
+  scenes.forEach(s => {
+    sceneHtml += '<div class="eval-scene-card"><h4>' + s.icon + ' ' + s.name +
+      ' — 匹配度 ' + s.match + '%</h4><p>' + s.reason + '</p></div>';
+  });
+  document.getElementById('eval-scene-list').innerHTML = sceneHtml;
+
+  // --- Summary ---
+  document.getElementById('eval-summary').innerHTML = generateSummary(name, dims, rank, scenes, cap, volt, safety, cycle, cost, energyDensity);
+
+  // Scroll to result
+  document.getElementById('eval-result-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clampLerp(val, minV, maxV, minOut, maxOut) {
+  if (val <= minV) return minOut;
+  if (val >= maxV) return maxOut;
+  return minOut + (val - minV) / (maxV - minV) * (maxOut - minOut);
+}
+
+function getCapLevel(c) {
+  if (c >= 1000) return '极高（≥1000 mAh/g），属于合金/转化型材料';
+  if (c >= 250) return '高（250~1000 mAh/g），高容量材料';
+  if (c >= 160) return '中等（160~250 mAh/g），主流材料水平';
+  return '偏低（<160 mAh/g），容量受限';
+}
+function getVoltLevel(v) {
+  if (v >= 4.0) return '高电压（≥4.0V），有利于提升能量密度';
+  if (v >= 3.5) return '中高电压（3.5~4.0V），主流正极电压区间';
+  if (v >= 2.0) return '中等电压（2.0~3.5V）';
+  if (v >= 0.5) return '低电压（0.5~2.0V），典型负极嵌入材料';
+  return '极低电压（<0.5V），接近金属锂电位，有利于提高全电池电压';
+}
+function getCycleLevel(c) {
+  if (c >= 6000) return '极长寿命，适合储能电站';
+  if (c >= 3000) return '长寿命，满足动力电池需求';
+  if (c >= 1500) return '中等寿命，适合消费电子和中端动力';
+  if (c >= 800) return '一般寿命，需关注衰减管理';
+  return '寿命偏短，循环稳定性需改善';
+}
+function getSafetyLevel(s) {
+  if (s >= 90) return '优秀（≥90），热稳定性好，产气少，安全风险极低';
+  if (s >= 70) return '良好（70~90），常规使用安全，需配合BMS管理';
+  if (s >= 50) return '中等（50~70），需加强热管理与安全防护';
+  return '偏低（<50），热失控风险较高，需严格安全设计';
+}
+function getCostLevel(c) {
+  if (c <= 25) return '低成本（≤25），原材料丰富廉价，如铁、锰基材料';
+  if (c <= 50) return '中等成本（25~50），性价比较好';
+  if (c <= 75) return '较高成本（50~75），含钴/镍等较贵元素';
+  return '高成本（>75），稀有元素或工艺复杂';
+}
+
+function calcSceneMatch(energy, power, safety, life, cost, cap, volt, cycle) {
+  const scenes = [
+    {
+      name: '长续航电动汽车', icon: '🚗',
+      calc: () => energy * 0.40 + power * 0.15 + safety * 0.20 + life * 0.15 + cost * 0.10,
+      reason: function(m) { return '该材料能量密度得分 ' + energy + '/100，' + (energy >= 65 ? '满足' : '不足以满足') + '长续航对高比能的核心需求。安全性得分 ' + safety + '/100，循环寿命得分 ' + life + '/100。' + (m >= 70 ? '综合匹配度高，适合用于高端电动汽车电池体系。' : m >= 50 ? '部分指标匹配，需与其他材料搭配使用。' : '匹配度较低，建议考虑其他场景。'); }
+    },
+    {
+      name: '电网储能电站', icon: '🏭',
+      calc: () => energy * 0.10 + power * 0.05 + safety * 0.35 + life * 0.35 + cost * 0.15,
+      reason: function(m) { return '储能电站核心要求为安全（得分 ' + safety + '）和长寿命（得分 ' + life + '），对能量密度要求不高。' + (m >= 70 ? '该材料安全与循环性能突出，非常适合大规模储能应用。' : m >= 50 ? '基本满足储能需求，但' + (safety < 70 ? '安全性' : '循环寿命') + '仍需提升。' : '关键指标不足，不建议用于储能。'); }
+    },
+    {
+      name: '快充动力电池', icon: '⚡',
+      calc: () => energy * 0.10 + power * 0.40 + safety * 0.25 + life * 0.15 + cost * 0.10,
+      reason: function(m) { return '快充场景要求高功率密度（得分 ' + power + '）和良好安全性（得分 ' + safety + '）。' + (m >= 70 ? '功率和安全性能俱佳，适合超级快充应用。' : m >= 50 ? '功率性能' + (power >= 60 ? '达标' : '偏弱') + '，' + (safety >= 60 ? '安全性可接受。' : '安全性需加强。') : '功率特性不足，不适合快充场景。'); }
+    },
+    {
+      name: '消费电子（手机/平板）', icon: '📱',
+      calc: () => energy * 0.40 + power * 0.10 + safety * 0.20 + life * 0.10 + cost * 0.20,
+      reason: function(m) { return '消费电子追求高能量密度（得分 ' + energy + '）以实现轻薄长续航，同时关注成本（得分 ' + cost + '）。' + (m >= 70 ? '能量与成本俱优，非常适合消费电子产品。' : m >= 50 ? '能量密度' + (energy >= 60 ? '满足' : '略低于') + '消费电子要求。' : '能量密度不足，不建议用于消费电子。'); }
+    },
+    {
+      name: '电动工具/无人机', icon: '🔧',
+      calc: () => energy * 0.20 + power * 0.35 + safety * 0.15 + life * 0.15 + cost * 0.15,
+      reason: function(m) { return '电动工具和无人机要求兼顾功率（得分 ' + power + '）和能量（得分 ' + energy + '）。' + (m >= 65 ? '功率与能量均衡优秀，适合该场景。' : '部分指标存在短板，需针对性优化。'); }
+    },
+    {
+      name: '低成本两轮车/轻型车', icon: '🛵',
+      calc: () => energy * 0.20 + power * 0.10 + safety * 0.25 + life * 0.20 + cost * 0.25,
+      reason: function(m) { return '两轮车市场高度成本敏感（成本得分 ' + cost + '），同时需要基本的安全保障（得分 ' + safety + '）和耐用性（得分 ' + life + '）。' + (m >= 65 ? '成本与安全均衡，适合大规模推广。' : '需在成本与性能间进一步权衡。'); }
+    }
+  ];
+
+  return scenes.map(s => {
+    const raw = s.calc();
+    const match = Math.min(99, Math.max(10, Math.round(raw)));
+    return { name: s.name, icon: s.icon, match: match, reason: s.reason(match) };
+  }).sort((a, b) => b.match - a.match);
+}
+
+function generateSummary(name, dims, rank, scenes, cap, volt, safety, cycle, cost, ed) {
+  const best = dims.reduce((a, b) => a.score >= b.score ? a : b);
+  const worst = dims.reduce((a, b) => a.score <= b.score ? a : b);
+  const topScene = scenes[0];
+
+  let html = '<p><strong>「' + name + '」</strong>的综合评级为 <strong>' + rank + ' 级</strong>。';
+  html += '最突出优势为<strong>' + best.label + '</strong>（' + best.score + '分），';
+  html += '最大短板为<strong>' + worst.label + '</strong>（' + worst.score + '分）。</p>';
+
+  html += '<p style="margin-top:10px;">材料级能量密度为 <strong>' + ed.toFixed(1) + ' Wh/kg</strong>，';
+  if (ed >= 700) html += '处于高能量密度水平，';
+  else if (ed >= 400) html += '处于中等能量密度水平，';
+  else html += '能量密度偏低，';
+
+  html += '预估循环寿命 <strong>' + cycle + ' 次</strong>，';
+  if (cycle >= 3000) html += '具备长寿命优势。</p>';
+  else if (cycle >= 1000) html += '寿命中等。</p>';
+  else html += '寿命偏短，需关注衰减问题。</p>';
+
+  html += '<p style="margin-top:10px;"><strong>最佳推荐场景：</strong>' + topScene.icon + ' ' + topScene.name + '（匹配度 ' + topScene.match + '%）</p>';
+
+  html += '<p style="margin-top:10px;"><strong>改进建议：</strong>';
+  if (worst.label === '能量性能') html += '可通过提高材料比容量（如掺杂改性、纳米化）或提升电压平台来改善能量密度。';
+  else if (worst.label === '功率性能') html += '建议通过纳米化、碳包覆、构建多孔结构等方式提升离子/电子传输速率。';
+  else if (worst.label === '安全性能') html += '可通过表面包覆（如Al₂O₃、TiO₂）、体相掺杂（如Mg、Ti）或选择更稳定的晶体结构来提升热稳定性。';
+  else if (worst.label === '循环寿命') html += '建议优化材料结构稳定性（如梯度浓度设计、单晶化），或改善电解液/界面兼容性以减少副反应。';
+  else html += '可探索廉价元素替代（如富锰体系）、简化合成工艺或提高材料产率来降低成本。';
+  html += '</p>';
+
+  return html;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', initComparisons);
+</script>
+
+</body>
+</html>

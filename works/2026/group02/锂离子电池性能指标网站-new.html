@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>锂离子电池性能指标计算与分析平台</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Times New Roman", "Microsoft YaHei", "PingFang SC", serif; }
+    :root {
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --cyan:#06b6d4;
+      --green:#16a34a;
+      --orange:#f97316;
+      --purple:#7c3aed;
+      --red:#dc2626;
+      --slate:#0f172a;
+      --deep:#071226;
+      --bg:#eff6ff;
+      --card:#ffffff;
+      --text:#1e293b;
+      --muted:#64748b;
+      --line:#dbeafe;
+      --soft:#f8fbff;
+      --shadow:0 20px 55px rgba(15,23,42,.12);
+      --small-shadow:0 8px 24px rgba(15,23,42,.08);
+    }
+    html { scroll-behavior: smooth; }
+    .nav-page-shell, .site-content, nav { display: none; }
+    body.cover-active { height: 100vh; overflow: hidden; padding-bottom: 0; }
+    body.nav-active { min-height: 100vh; overflow: auto; padding-bottom: 0; }
+    body.cover-active nav,
+    body.cover-active .nav-page-shell,
+    body.cover-active .site-content { display: none !important; }
+    body.nav-active .cover-page,
+    body.nav-active nav,
+    body.nav-active .site-content { display: none !important; }
+    body.nav-active .nav-page-shell { display: block; }
+    body.site-active .cover-page,
+    body.site-active .nav-page-shell { display: none !important; }
+    body.site-active nav { display: block; }
+    body.site-active .site-content { display: block; }
+    .cover-page.cover-hidden { display: none !important; }
+
+    body {
+      background:
+        radial-gradient(circle at 8% 8%, rgba(37,99,235,.13), transparent 28%),
+        radial-gradient(circle at 92% 0%, rgba(6,182,212,.16), transparent 28%),
+        linear-gradient(180deg,#f8fbff 0%,#eef4ff 42%,#f8fafc 100%);
+      color: var(--text);
+      line-height: 1.72;
+      padding-bottom: 54px;
+    }
+    ::selection { background:#bfdbfe; color:#0f172a; }
+    .container { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+    .math, .numeric, .formula-block, .result-value, .formula-inline { font-family: "Times New Roman", serif; }
+    .math, .numeric, .formula-inline { white-space: nowrap; }
+
+    /* 封面页 */
+    .cover-page {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(56,189,248,.22), transparent 26%),
+        radial-gradient(circle at 72% 28%, rgba(37,99,235,.28), transparent 34%),
+        linear-gradient(135deg,#020617 0%,#0b1b3d 42%,#0f3c7a 76%,#082f49 100%);
+      color: white;
+    }
+    .cover-page:before {
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.22));
+    }
+    .cover-page:after {
+      content:"";
+      position:absolute;
+      inset:auto -12% -34% -12%;
+      height: 46vh;
+      background: radial-gradient(ellipse at center, rgba(6,182,212,.32), transparent 62%);
+      filter: blur(4px);
+    }
+    .cover-inner {
+      width: min(1240px, 92%);
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.06fr .94fr;
+      gap: 42px;
+      align-items: center;
+      padding: 56px 0 64px;
+    }
+    .cover-kicker {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 14px;
+      border:1px solid rgba(125,211,252,.35);
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      color:#bae6fd;
+      font-weight:800;
+      letter-spacing:.8px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(10px);
+    }
+    .cover-title {
+      font-size: clamp(40px, 6vw, 76px);
+      line-height: 1.08;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      font-weight: 900;
+    }
+    .cover-title span {
+      display:block;
+      background: linear-gradient(90deg,#ffffff,#93c5fd 45%,#67e8f9 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .cover-subtitle { max-width: 740px; color:#dbeafe; font-size: 18px; margin-bottom: 24px; }
+    .cover-actions { display:flex; gap:14px; flex-wrap:wrap; margin: 22px 0 24px; }
+    .enter-btn, .ghost-btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:9px;
+      min-height: 48px; padding: 0 22px; border-radius: 999px;
+      text-decoration:none; font-weight: 800; transition:.25s ease;
+    }
+    .enter-btn { color:#061326; background: linear-gradient(135deg,#e0f2fe,#67e8f9 52%,#60a5fa); box-shadow:0 18px 34px rgba(6,182,212,.28); }
+    .enter-btn:hover { transform: translateY(-3px); box-shadow:0 24px 42px rgba(6,182,212,.36); }
+    .ghost-btn { color:#dbeafe; border:1px solid rgba(191,219,254,.35); background:rgba(255,255,255,.06); }
+    .ghost-btn:hover { background:rgba(255,255,255,.12); transform: translateY(-3px); }
+    .member-btn { font-family: inherit; border:1px solid rgba(191,219,254,.38); }
+    .member-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(2, 6, 23, .64);
+      backdrop-filter: blur(10px);
+    }
+    .member-modal.show { display: flex; }
+    .member-dialog {
+      width: min(520px, 92vw);
+      border-radius: 28px;
+      padding: 28px;
+      background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(239,246,255,.94));
+      border: 1px solid rgba(191,219,254,.9);
+      box-shadow: 0 28px 80px rgba(2, 6, 23, .34);
+      position: relative;
+      animation: modalPop .22s ease-out;
+    }
+    .member-dialog h2 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 4vw, 34px);
+      color: #0f2f66;
+      letter-spacing: .03em;
+    }
+    .member-dialog p {
+      margin: 0 0 20px;
+      color: #64748b;
+      font-size: 15px;
+    }
+    .member-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .member-card {
+      padding: 18px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(191,219,254,.95);
+      color: #12345f;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 12px 26px rgba(37,99,235,.10);
+      cursor: pointer;
+      transition: .22s;
+      font-size: 17px;
+      font-family: inherit;
+    }
+    .member-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(37,99,235,.45);
+      background: linear-gradient(135deg, #ffffff, #eff6ff);
+      box-shadow: 0 16px 34px rgba(37,99,235,.16);
+    }
+    .member-card.active {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 18px 36px rgba(37,99,235,.24);
+    }
+    .member-class-box {
+      margin-top: 18px;
+      padding: 15px 16px;
+      border-radius: 16px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #0f3f8c;
+      font-weight: 800;
+      text-align: center;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .member-close {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0f3f8c;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .member-close:hover { background:#bfdbfe; transform: rotate(90deg); }
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(12px) scale(.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .cover-metrics { display:grid; grid-template-columns: repeat(4, minmax(100px,1fr)); gap:12px; max-width:760px; }
+    .cover-metric { border:1px solid rgba(191,219,254,.20); background:rgba(255,255,255,.08); border-radius:18px; padding:14px 12px; backdrop-filter: blur(12px); }
+    .cover-metric strong { display:block; font-size:28px; color:#67e8f9; line-height:1.15; }
+    .cover-metric span { color:#dbeafe; font-size:13px; }
+    .cover-shortcuts { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:18px; max-width:760px; }
+    .cover-shortcuts a { text-decoration:none; color:#e0f2fe; border:1px solid rgba(191,219,254,.18); background:rgba(15,23,42,.24); padding:12px 14px; border-radius:16px; font-weight:800; transition:.25s; }
+    .cover-shortcuts a:hover { transform:translateY(-3px); background:rgba(37,99,235,.24); }
+
+    .cover-visual { position:relative; min-height: 520px; display:flex; align-items:center; justify-content:center; }
+    .cover-orbit-scene { position:relative; width: 520px; height: 520px; max-width: 100%; transform-style: preserve-3d; animation:sceneFloat 6s ease-in-out infinite; }
+    .energy-halo { position:absolute; left:50%; top:54%; width:420px; height:420px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle, rgba(34,211,238,.34) 0%, rgba(37,99,235,.20) 44%, rgba(37,99,235,.08) 62%, transparent 72%); box-shadow:0 0 80px rgba(59,130,246,.32); animation:haloPulse 3.6s ease-in-out infinite; }
+    .orbit-ring { position:absolute; left:50%; top:54%; border:1px solid rgba(147,197,253,.28); border-radius:50%; transform:translate(-50%,-50%); }
+    .ring-a { width:360px; height:360px; animation:orbitPulse 5s ease-in-out infinite; }
+    .ring-b { width:250px; height:250px; animation:orbitPulse 5s ease-in-out infinite reverse; }
+    .ring-c { width:455px; height:455px; border-color:rgba(34,211,238,.14); }
+    .battery-icon { position:absolute; left:34%; top:54%; width:190px; height:300px; transform:translate(-50%,-50%); filter:drop-shadow(0 24px 45px rgba(37,99,235,.35)); animation:batteryFloat 4.8s ease-in-out infinite; }
+    .battery-cap { position:absolute; left:50%; top:-24px; width:84px; height:36px; transform:translateX(-50%); border-radius:18px 18px 8px 8px; background:linear-gradient(180deg,#f8fafc 0%,#cbd5e1 62%,#94a3b8 100%); box-shadow: inset 0 6px 12px rgba(255,255,255,.65), 0 10px 20px rgba(15,23,42,.18); }
+    .battery-body { position:absolute; inset:0; border-radius:44px; border:4px solid rgba(224,242,254,.92); overflow:hidden; background:linear-gradient(180deg,#c9fbff 0%,#54c7ed 25%,#1d8cf0 72%,#3867e8 100%); box-shadow: inset 0 14px 34px rgba(255,255,255,.35), inset 0 -20px 38px rgba(30,64,175,.38), 0 0 52px rgba(56,189,248,.32); }
+    .battery-shine { position:absolute; inset:0; background:linear-gradient(90deg, rgba(255,255,255,.36) 0%, rgba(255,255,255,.13) 28%, transparent 48%); mix-blend-mode:screen; }
+    .battery-charge { position:absolute; left:0; right:0; bottom:0; height:78%; background:linear-gradient(180deg, rgba(103,232,249,.18), rgba(37,99,235,.22)); animation:chargeWave 3.2s ease-in-out infinite; }
+    .battery-lightning { position:absolute; left:50%; top:52%; width:72px; height:120px; transform:translate(-50%,-50%); background:linear-gradient(180deg,#ffd166 0%,#fb923c 48%,#ef4444 100%); clip-path:polygon(58% 0, 14% 52%, 46% 52%, 34% 100%, 88% 38%, 58% 38%); filter:drop-shadow(0 0 16px rgba(251,146,60,.75)); animation:lightningGlow 1.8s ease-in-out infinite; }
+    .ion-dot { position:absolute; width:24px; height:24px; border-radius:50%; box-shadow:0 0 26px currentColor; }
+    .ion-cyan { left:7%; top:38%; color:#67e8f9; background:#67e8f9; animation:ionAround1 5.2s ease-in-out infinite; }
+    .ion-blue { left:55%; top:41%; color:#60a5fa; background:#60a5fa; animation:ionAround2 5.8s ease-in-out infinite; }
+    .ion-orange { left:47%; top:71%; color:#f97316; background:#f97316; animation:ionAround3 4.6s ease-in-out infinite; }
+    .molecule-mini { position:absolute; right:3%; top:20%; width:210px; height:170px; animation:moleculeFloat 5s ease-in-out infinite; }
+    .mol-dot { position:absolute; width:30px; height:30px; border-radius:50%; box-shadow:0 0 24px currentColor; z-index:2; }
+    .mol-d1 { left:92px; top:4px; color:#60a5fa; background:#60a5fa; }
+    .mol-d2 { left:18px; top:78px; color:#22d3ee; background:#22d3ee; }
+    .mol-d3 { right:4px; top:78px; color:#a78bfa; background:#a78bfa; }
+    .mol-d4 { left:92px; bottom:2px; color:#f97316; background:#f97316; }
+    .mol-line { position:absolute; height:4px; width:98px; border-radius:999px; background:rgba(191,219,254,.70); transform-origin:left center; box-shadow:0 0 14px rgba(147,197,253,.30); }
+    .mol-l1 { left:52px; top:70px; transform:rotate(-43deg); }
+    .mol-l2 { left:52px; top:92px; transform:rotate(43deg); }
+    .mol-l3 { left:112px; top:88px; transform:rotate(-42deg); }
+    .mol-l4 { left:112px; top:112px; transform:rotate(42deg); }
+    .circuit-line { position:absolute; height:3px; width:120px; border-radius:999px; background:linear-gradient(90deg, transparent, rgba(147,197,253,.78), transparent); }
+    .circuit-a { right:1%; top:43%; transform:rotate(-45deg); opacity:.9; }
+    .circuit-b { right:1%; top:51%; transform:rotate(45deg); opacity:.75; }
+    .circuit-c { right:22%; top:48%; width:56px; transform:rotate(45deg); opacity:.72; }
+    .scroll-hint { position:absolute; z-index:3; left:50%; bottom:24px; transform:translateX(-50%); color:#bfdbfe; font-size:13px; }
+    @keyframes sceneFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes batteryFloat { 0%,100%{transform:translate(-50%,-50%) rotate(-1deg)} 50%{transform:translate(-50%,-54%) rotate(1deg)} }
+    @keyframes haloPulse { 0%,100%{opacity:.70; transform:translate(-50%,-50%) scale(.98)} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.05)} }
+    @keyframes orbitPulse { 0%,100%{opacity:.35; transform:translate(-50%,-50%) scale(.98)} 50%{opacity:.72; transform:translate(-50%,-50%) scale(1.04)} }
+    @keyframes chargeWave { 0%,100%{height:72%; opacity:.78} 50%{height:86%; opacity:1} }
+    @keyframes lightningGlow { 0%,100%{filter:drop-shadow(0 0 12px rgba(251,146,60,.65)); transform:translate(-50%,-50%) scale(.98)} 50%{filter:drop-shadow(0 0 28px rgba(251,146,60,.95)); transform:translate(-50%,-50%) scale(1.05)} }
+    @keyframes ionAround1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(18px,-22px)} }
+    @keyframes ionAround2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(24px,24px)} }
+    @keyframes ionAround3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-22px,16px)} }
+    @keyframes moleculeFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(2deg)} }
+
+    /* 顶部导航 */
+    nav { background: rgba(7,18,38,.92); color:white; padding: 14px 0; box-shadow:0 10px 30px rgba(15,23,42,.18); position: sticky; top: 0; z-index: 99; backdrop-filter: blur(14px); }
+    .nav-wrap { display:flex; justify-content:space-between; align-items:center; gap: 22px; }
+    .nav-title { font-size: 20px; font-weight: 900; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+    .nav-logo { width:34px; height:34px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#2563eb,#06b6d4); box-shadow:0 8px 18px rgba(37,99,235,.34); position:relative; flex:0 0 auto; }
+    .nav-logo:before { content:""; width:14px; height:22px; background:#e0f2fe; clip-path: polygon(58% 0, 18% 52%, 48% 52%, 36% 100%, 86% 38%, 58% 38%); }
+    .nav-links { display:flex; flex-wrap:wrap; justify-content:flex-end; gap: 8px 12px; }
+    .nav-links a { color: #e0f2fe; text-decoration: none; font-size: 13px; transition: .2s; padding:6px 9px; border-radius:999px; }
+    .nav-links a:hover { color: #ffffff; background:rgba(255,255,255,.12); }
+
+    /* 通用组件 */
+    .hero, .card { background: rgba(255,255,255,.92); border:1px solid rgba(219,234,254,.95); border-radius: 24px; padding: 28px; margin-top: 28px; box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+    .hero { overflow:hidden; position:relative; background: linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,246,255,.90)); }
+    .hero:after { content:""; position:absolute; right:-90px; top:-90px; width:250px; height:250px; background:radial-gradient(circle, rgba(37,99,235,.13), transparent 70%); }
+    .hero h1 { font-size: 34px; color:#0f3f8c; margin-bottom: 10px; }
+    .hero p { max-width: 940px; color:var(--muted); }
+    .hero-tags, .module-grid { display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px; }
+    .hero-tags span { padding:7px 12px; border-radius:999px; background:#e0f2fe; color:#075985; font-weight:700; font-size:13px; }
+    .workflow { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-top:18px; }
+    .workflow-card { padding:16px; border:1px solid #dbeafe; background:#f8fbff; border-radius:18px; transition:.2s; }
+    .workflow-card:hover { transform:translateY(-4px); box-shadow:var(--small-shadow); }
+    .workflow-card strong { display:block; color:#1d4ed8; margin-bottom:4px; }
+    .workflow-card a { color:inherit; text-decoration:none; }
+    .navigation-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 34px;
+      margin-top: 0;
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,.12), transparent 34%),
+        radial-gradient(circle at 90% 12%, rgba(6,182,212,.12), transparent 32%),
+        linear-gradient(135deg, rgba(255,255,255,.97), rgba(241,247,255,.94));
+    }
+    .navigation-page h1 {
+      font-size: clamp(34px, 4vw, 46px);
+      color:#0f3f8c;
+      text-align:center;
+      letter-spacing:.04em;
+      margin-bottom: 10px;
+    }
+    .navigation-page > p {
+      text-align:center;
+      max-width: 720px;
+      margin: 0 auto 30px;
+      color:#64748b;
+      font-size: 16px;
+      line-height: 1.9;
+    }
+    .navigation-page .workflow {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 22px;
+      margin-top: 8px;
+    }
+    .navigation-page .workflow-card {
+      min-height: 150px;
+      display:flex;
+      align-items:center;
+      padding: 26px 24px;
+      border-radius: 24px;
+      border:1px solid rgba(147,197,253,.78);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.96));
+      box-shadow: 0 14px 30px rgba(37,99,235,.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .navigation-page .workflow-card:before {
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:5px;
+      background:linear-gradient(180deg,#2563eb,#06b6d4);
+      opacity:.85;
+    }
+    .navigation-page .workflow-card:hover {
+      transform:translateY(-6px);
+      box-shadow: 0 18px 38px rgba(37,99,235,.16);
+      border-color:#93c5fd;
+      background:linear-gradient(180deg,#ffffff,#eff6ff);
+    }
+    .navigation-page .workflow-card a {
+      display:block;
+      width:100%;
+      padding-left: 4px;
+      position:relative;
+      z-index:1;
+    }
+    .navigation-page .workflow-card strong {
+      font-size: 19px;
+      line-height: 1.45;
+      margin-bottom: 10px;
+      color:#1d4ed8;
+    }
+    .navigation-page .workflow-card span {
+      display:block;
+      color:#64748b;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .card-title { font-size: 23px; font-weight: 900; color: #0f3f8c; margin-bottom: 18px; border-left: 6px solid var(--blue); padding-left: 12px; position:relative; }
+    .card-title:after { content:""; display:block; width:72px; height:3px; border-radius:999px; background:linear-gradient(90deg,#2563eb,#06b6d4); margin-top:9px; opacity:.85; }
+    .section-title { font-size: 18px; margin: 20px 0 12px; color: #1e40af; font-weight: 900; }
+    .subtle { color:var(--muted); font-size:14px; }
+    .desc-text { color:#4b5563; margin: 10px 0; font-size: 15px; }
+    .tip-text { color:#dc2626; font-size:14px; margin-top:8px; }
+    .note-text { color:#1d4ed8; background:#eff6ff; border:1px dashed #bfdbfe; border-radius:12px; padding:12px 14px; font-size:14px; margin:8px 0 14px; }
+    .analysis-text { background:linear-gradient(135deg,#fff7ed,#fffbeb); padding:14px 16px; border-radius:14px; border-left:5px solid #f59e0b; margin: 14px 0; font-size: 15px; }
+    .info-text { background:#f0fdf4; border-left:5px solid #16a34a; padding:14px 16px; border-radius:14px; margin:14px 0; }
+
+    .indicator-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
+    .indicator-card, .mini-card { border:1px solid #dbeafe; background:linear-gradient(180deg,#ffffff,#f8fbff); border-radius:18px; padding:18px; box-shadow:0 8px 18px rgba(37,99,235,.06); transition:.2s; }
+    .indicator-card:hover, .mini-card:hover { transform:translateY(-4px); box-shadow:var(--small-shadow); }
+    .indicator-card h3, .mini-card h3 { color:#1d4ed8; margin-bottom:8px; }
+    .indicator-card p { margin-top:8px; font-size:14px; color:#475569; }
+    .badge { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:8px; color:#fff; background:linear-gradient(135deg,#2563eb,#06b6d4); margin-right:8px; font-size:14px; }
+    .formula-block { background: linear-gradient(135deg,#ecfeff,#eff6ff); color:#0f172a; padding: 18px; border-radius: 16px; margin: 12px 0; text-align: center; font-size: 20px; border:1px solid #bae6fd; overflow-x:auto; line-height:1.8; }
+    .formula-main { display:inline-flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; }
+    .fraction { display:inline-block; vertical-align:middle; text-align:center; line-height:1.08; margin:0 4px; }
+    .fraction span { display:block; padding:0 5px; }
+    .fraction .numerator { border-bottom: 1.5px solid #0f172a; }
+    .derive-list { display:grid; grid-template-columns: repeat(2, minmax(320px, 1fr)); gap:14px; }
+    .derive-step { background:#f8fbff; border:1px solid #dbeafe; border-radius:14px; padding:16px 18px; display:flex; align-items:flex-start; gap:10px; min-height:78px; overflow-x:auto; }
+    .derive-step b { color:#2563eb; font-size:20px; flex:0 0 auto; line-height:1.65; }
+    .derive-step .step-content { flex:1; min-width:0; line-height:1.75; }
+    .derive-step .math { white-space:nowrap; display:inline-block; }
+
+    /* 表格 */
+    .table-wrap { overflow-x:auto; border-radius:16px; border:1px solid #dbeafe; background:white; }
+    table { width:100%; border-collapse:collapse; min-width: 880px; }
+    th, td { border-bottom:1px solid #e2e8f0; padding:12px 10px; text-align:center; font-size:14px; }
+    th { background: linear-gradient(180deg,#eff6ff,#dbeafe); color:#0f3f8c; font-weight:900; position:sticky; top:0; }
+    tr:nth-child(even) td { background:#f8fafc; }
+    tr:hover td { background:#eff6ff; }
+    .tag { display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#e0f2fe; color:#075985; font-weight:700; font-size:12px; }
+    .tag.green{background:#dcfce7;color:#166534}.tag.orange{background:#ffedd5;color:#9a3412}.tag.purple{background:#ede9fe;color:#5b21b6}.tag.red{background:#fee2e2;color:#991b1b}.tag.slate{background:#e2e8f0;color:#334155}
+
+    /* 表单和按钮 */
+    .form-row { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0; align-items:flex-end; }
+    .form-item { flex:1; min-width:220px; }
+    label { display:block; margin-bottom:6px; font-weight:800; color:#334155; }
+    input, select, textarea { width:100%; padding:11px 12px; border:1px solid #cbd5e1; border-radius:10px; font-size:15px; background:white; transition:.2s; }
+    textarea { min-height:86px; resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+    button { padding:10px 18px; border:none; border-radius:10px; cursor:pointer; font-size:15px; font-weight:800; transition:.2s; }
+    .btn-primary { background:linear-gradient(135deg,#2563eb,#06b6d4); color:white; box-shadow:0 10px 22px rgba(37,99,235,.22); }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 14px 28px rgba(37,99,235,.28); }
+    .btn-secondary { background:#e2e8f0; color:#334155; }
+    .btn-secondary:hover { background:#cbd5e1; transform:translateY(-2px); }
+    .btn-orange { background:linear-gradient(135deg,#f97316,#f59e0b); color:white; box-shadow:0 10px 22px rgba(249,115,22,.20); }
+    .btn-red { background:#fee2e2; color:#991b1b; }
+    .result-box { background:linear-gradient(135deg,#f0fdf4,#ecfeff); padding:16px; border-radius:16px; margin-top:16px; border:1px solid #bbf7d0; }
+    .result-value { font-size:22px; font-weight:900; color:#166534; }
+    .result-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; margin-top:14px; }
+    .result-item { background:white; border:1px solid #dbeafe; border-radius:14px; padding:14px; }
+    .result-item b { display:block; color:#475569; font-size:14px; }
+    .result-item span { color:#0f3f8c; font-weight:900; font-size:20px; }
+
+    /* 图表 */
+    .chart-wrap { width:100%; height:420px; margin-top:16px; background:linear-gradient(180deg,#ffffff,#f8fbff); border:1px solid #dbeafe; border-radius:18px; padding:16px; }
+    .wide-chart { height:470px; }
+    canvas { max-width:100%; }
+    .radar-control { display:flex; flex-wrap:wrap; gap:10px; margin: 12px 0; }
+    .radar-chip { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border:1px solid #bfdbfe; border-radius:999px; background:#f8fbff; cursor:pointer; font-weight:700; font-size:13px; }
+    .radar-chip input { width:auto; accent-color:#2563eb; }
+    .radar-actions { display:flex; gap:10px; flex-wrap:wrap; margin:8px 0; }
+
+    /* 新增模块 */
+    .split-grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:start; }
+    .three-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
+    .recommend-result { min-height:170px; }
+    .recommend-card { border:1px solid #dbeafe; border-radius:18px; padding:16px; background:white; box-shadow:var(--small-shadow); }
+    .recommend-card h3 { color:#0f3f8c; margin-bottom:8px; }
+    .score-bar { height:10px; border-radius:999px; background:#e2e8f0; overflow:hidden; margin-top:8px; }
+    .score-bar span { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#2563eb,#06b6d4); }
+    .system-card { background:white; border:1px solid #dbeafe; border-radius:18px; padding:16px; box-shadow:var(--small-shadow); }
+    .system-card h3 { color:#1e40af; margin-bottom:6px; }
+    .system-tags { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .module-anchor { scroll-margin-top: 96px; }
+    .small { font-size:13px; color:var(--muted); }
+    .divider { height:1px; background:#e2e8f0; margin:18px 0; }
+
+    footer { text-align:center; margin-top:34px; color:#64748b; font-size:14px; }
+
+    @media (max-width:960px){
+      .cover-inner { grid-template-columns:1fr; padding-top:40px; }
+      .cover-visual { min-height:380px; }
+      .cover-orbit-scene { width:400px; height:400px; }
+      .battery-icon { width:150px; height:240px; left:36%; }
+      .molecule-mini { transform:scale(.82); right:0; }
+      .split-grid, .three-grid, .derive-list { grid-template-columns:1fr; }
+      .cover-shortcuts { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:768px){
+      .container { padding:0 14px; }
+      .nav-wrap { flex-direction:column; align-items:flex-start; }
+      .nav-links { justify-content:flex-start; }
+      .cover-metrics { grid-template-columns:repeat(2,1fr); }
+      .cover-shortcuts { grid-template-columns:1fr; }
+      .cover-title { font-size: 38px; }
+      .member-dialog { padding: 24px 18px; border-radius: 22px; }
+      .member-list { grid-template-columns: 1fr; }
+      .cover-orbit-scene { width:330px; height:330px; }
+      .battery-icon { width:130px; height:210px; }
+      .battery-lightning { width:54px; height:92px; }
+      .molecule-mini { width:160px; height:130px; transform:scale(.72); right:-10px; top:10%; }
+      .hero, .card { padding:20px; border-radius:18px; }
+      .card-title { font-size:20px; }
+      .derive-step { padding:14px; font-size:15px; }
+      .formula-block { font-size:17px; }
+      .chart-wrap { height:340px; padding:8px; }
+      .wide-chart { height:380px; }
+      .form-row { flex-direction:column; align-items:stretch; }
+      .form-item { min-width:100%; }
+    }
+  </style>
+</head>
+<body class="cover-active">
+
+<section class="cover-page" id="cover">
+  <div class="cover-inner">
+    <div class="cover-copy">
+      <div class="cover-kicker">Li-ion Battery Platform</div>
+      <h1 class="cover-title">锂离子电池<span>性能指标计算与分析平台</span></h1>
+      <p class="cover-subtitle">理论计算 · 材料对比 · 工程估算</p>
+      <div class="cover-actions">
+        <a class="enter-btn" id="enterPlatformBtn" href="#workflow">进入平台</a>
+        <button class="ghost-btn member-btn" id="memberBtn" type="button">小组成员</button>
+      </div>
+    </div>
+    <div class="cover-visual" aria-hidden="true">
+      <div class="cover-orbit-scene">
+        <div class="energy-halo"></div>
+        <div class="orbit-ring ring-a"></div>
+        <div class="orbit-ring ring-b"></div>
+        <div class="orbit-ring ring-c"></div>
+        <div class="battery-icon">
+          <div class="battery-cap"></div>
+          <div class="battery-body">
+            <div class="battery-shine"></div>
+            <div class="battery-charge"></div>
+            <div class="battery-lightning"></div>
+          </div>
+        </div>
+        <span class="ion-dot ion-cyan"></span>
+        <span class="ion-dot ion-blue"></span>
+        <span class="ion-dot ion-orange"></span>
+        <div class="molecule-mini">
+          <span class="mol-line mol-l1"></span>
+          <span class="mol-line mol-l2"></span>
+          <span class="mol-line mol-l3"></span>
+          <span class="mol-line mol-l4"></span>
+          <span class="mol-dot mol-d1"></span>
+          <span class="mol-dot mol-d2"></span>
+          <span class="mol-dot mol-d3"></span>
+          <span class="mol-dot mol-d4"></span>
+        </div>
+        <span class="circuit-line circuit-a"></span>
+        <span class="circuit-line circuit-b"></span>
+        <span class="circuit-line circuit-c"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="member-modal" id="memberModal" aria-hidden="true">
+  <div class="member-dialog" role="dialog" aria-modal="true" aria-labelledby="memberTitle">
+    <button class="member-close" id="memberCloseBtn" type="button" aria-label="关闭">×</button>
+    <h2 id="memberTitle">小组成员</h2>
+    <p>本网站由小组成员共同完成设计、修改与展示。</p>
+    <div class="member-list">
+      <button class="member-card" type="button" data-class="储能2301班">赵梓宇</button>
+      <button class="member-card" type="button" data-class="储能2301班">王滢</button>
+      <button class="member-card" type="button" data-class="储能2302班">郭思语</button>
+      <button class="member-card" type="button" data-class="储能2302班">李佳</button>
+    </div>
+    <div class="member-class-box" id="memberClassBox">点击成员姓名查看所在班级</div>
+  </div>
+</div>
+
+<nav id="mainSite">
+  <div class="container nav-wrap">
+    <div class="nav-title"><span class="nav-logo"></span>锂电池性能指标平台</div>
+    <div class="nav-links">
+      <a href="#workflow">功能导航</a><a href="#theory">核心理论</a><a href="#material">材料库</a><a href="#visualization">性能图表</a><a href="#calc">计算器</a><a href="#recommend">体系推荐</a><a href="#cell-estimator">全电池估算</a><a href="#system-compare">体系对比</a><a href="#design">设计原则</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container nav-page-shell" id="navigationPage">
+  <section class="hero navigation-page" id="workflow">
+    <h1>功能导航</h1>
+    <p>点击下方模块可直接进入对应功能。</p>
+    <div class="workflow">
+      <div class="workflow-card"><a href="#theory"><strong>01 核心理论</strong><span>性能指标定义与比容量公式推导</span></a></div>
+      <div class="workflow-card"><a href="#material"><strong>02 材料参数库</strong><span>正负极材料查询与自定义材料添加</span></a></div>
+      <div class="workflow-card"><a href="#visualization"><strong>03 性能图表</strong><span>雷达图与 Ragone 图对比分析</span></a></div>
+      <div class="workflow-card"><a href="#calc"><strong>04 基础计算器</strong><span>比容量、能量密度、功率密度与 N/P</span></a></div>
+      <div class="workflow-card"><a href="#recommend"><strong>05 体系推荐</strong><span>按应用场景推荐正负极材料组合</span></a></div>
+      <div class="workflow-card"><a href="#cell-estimator"><strong>06 全电池估算</strong><span>估算组合容量、能量和设计合理性</span></a></div>
+      <div class="workflow-card"><a href="#system-compare"><strong>07 体系对比</strong><span>比较不同电池体系的综合性能</span></a></div>
+      <div class="workflow-card"><a href="#design"><strong>08 设计原则</strong><span>总结材料匹配与工程设计规律</span></a></div>
+    </div>
+  </section>
+</div>
+
+<div class="container site-content" id="contentSite">
+  <section id="theory" class="card module-anchor">
+    <h2 class="card-title">一、锂离子电池四大核心性能指标</h2>
+    <div class="section-title">1.1 指标定义与物理意义</div>
+    <div class="indicator-grid">
+      <div class="indicator-card"><h3><span class="badge">1</span>理论比容量 C</h3><p><b>定义：</b>单位质量活性材料在理想完全电化学反应条件下可提供的最大电荷量，常用单位为 <span class="math">mAh/g</span>。</p><p><b>物理意义：</b>反映电极材料参与可逆嵌锂/脱锂反应并发生电子转移的储电能力。</p><p><b>应用价值：</b>决定电极材料容量上限，是材料筛选和电池容量设计的基础。</p></div>
+      <div class="indicator-card"><h3><span class="badge">2</span>平均工作电压 U</h3><p><b>定义：</b>电池在规定充放电条件下工作电压平台或放电曲线的平均电压，单位为 <span class="math">V</span>。</p><p><b>物理意义：</b>主要由正极与负极之间的电化学势差决定。</p><p><b>应用价值：</b>影响电池输出电压等级和能量密度。</p></div>
+      <div class="indicator-card"><h3><span class="badge">3</span>质量能量密度 E</h3><p><b>定义：</b>单位质量电池或材料体系能够储存/释放的能量，常用单位为 <span class="math">Wh/kg</span>。</p><p><b>物理意义：</b>表示“单位质量能存多少电能”，通常由容量与平均工作电压共同决定。</p><p><b>应用价值：</b>决定新能源汽车续航、便携设备使用时间和储能系统质量需求。</p></div>
+      <div class="indicator-card"><h3><span class="badge">4</span>质量功率密度 P</h3><p><b>定义：</b>单位质量电池在单位时间内可输出或吸收的功率，常用单位为 <span class="math">W/kg</span>。</p><p><b>物理意义：</b>反映快速充放电和大电流输出能力，与内阻、倍率性能、热管理有关。</p><p><b>应用价值：</b>用于评价快充、加速、启停和高倍率工况下的动力响应能力。</p></div>
+    </div>
+    <div class="section-title">1.2 理论比容量计算公式</div>
+    <div class="formula-block"><span class="formula-main"><span>C = </span><span class="fraction"><span class="numerator">zF</span><span class="denominator">3.6M</span></span><span> (mAh/g)</span></span></div>
+    <p class="desc-text">其中：<span class="math">z</span> 为转移电子数，<span class="math">F = 96485 C/mol</span> 为法拉第常数，<span class="math">M</span> 为活性材料摩尔质量 <span class="math">g/mol</span>。</p>
+    <div class="section-title">公式的推导过程</div>
+    <div class="derive-list">
+      <div class="derive-step"><b>1.</b><span class="step-content">法拉第定律：<span class="math">Q = nzF</span>（单位：库仑 C）</span></div>
+      <div class="derive-step"><b>2.</b><span class="step-content">库仑转安时：<span class="math">Q = nzF / 3600</span>（单位：A·h）</span></div>
+      <div class="derive-step"><b>3.</b><span class="step-content">比容量 = 电量 ÷ 质量，质量 <span class="math">m = nM</span></span></div>
+      <div class="derive-step"><b>4.</b><span class="step-content">代入后化简：<span class="math">C = zF/(3.6M)</span></span></div>
+    </div>
+    <p class="desc-text">式中：<span class="math">z=1</span> 时代表每个化学式单元参与 1 个电子转移；实际材料可能因结构稳定性、可逆锂含量和测试条件不同而低于理论值。</p>
+  </section>
+
+  <section id="material" class="card module-anchor">
+    <h2 class="card-title">二、主流正/负极材料参数库</h2>
+    <div class="section-title">2.1 正极材料参数库</div>
+    <div class="table-wrap"><table id="positiveTable">
+      <thead><tr><th>材料</th><th>理论比容量(mAh/g)</th><th>平均电压(V)</th><th>压实密度(g/cm³)</th><th>优点</th><th>不足</th><th>适用场景</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+
+    <div class="section-title">2.2 负极材料参数库</div>
+    <div class="table-wrap"><table id="negativeTable">
+      <thead><tr><th>材料</th><th>理论比容量(mAh/g)</th><th>平均嵌锂电位(V vs. Li/Li⁺)</th><th>压实密度(g/cm³)</th><th>优点</th><th>不足</th><th>适用场景</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+
+    <div class="section-title">2.3 添加材料到参数库</div>
+    <p class="note-text">可以把课程或文献中补充的材料加入数据库。新增材料会同步进入材料表格、雷达图选择按钮、Ragone 图和正负极组合估算器，并保存在当前浏览器本地。</p>
+    <div class="mini-card material-form-card">
+        <h3>材料基础参数</h3>
+        <div class="form-row">
+          <div class="form-item"><label>材料类型</label><select id="customType"><option value="positive">正极材料</option><option value="negative">负极材料</option></select></div>
+          <div class="form-item"><label>材料名称</label><input id="customName" placeholder="例如：LMFP 磷酸锰铁锂"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-item"><label>理论比容量 (mAh/g)</label><input type="number" id="customCap" step="0.1"></div>
+          <div class="form-item"><label>平均电压/电位 (V)</label><input type="number" id="customVoltage" step="0.01"></div>
+          <div class="form-item"><label>压实密度 (g/cm³)</label><input type="number" id="customDensity" step="0.01"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-item"><label>适用场景</label><input id="customScenario" placeholder="例如：储能、动力电池"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-item"><label>主要优点</label><textarea id="customPros" placeholder="简要填写材料优势"></textarea></div>
+          <div class="form-item"><label>主要不足</label><textarea id="customCons" placeholder="简要填写材料不足"></textarea></div>
+        </div>
+        <p class="small">说明：新增材料的雷达图评分与 Ragone 图坐标将根据容量、电压/电位和材料类型自动生成，后续会同步进入表格、图表和组合估算器。</p>
+        <div class="form-row">
+          <button class="btn-primary" id="addMaterialBtn">添加到材料库</button>
+          <button class="btn-secondary" id="clearMaterialFormBtn">清空填写</button>
+          <button class="btn-red" id="resetCustomMaterialsBtn">删除自定义材料</button>
+        </div>
+        <div class="tip-text" id="customMaterialTip"></div>
+      </div>
+  </section>
+
+  <section id="visualization" class="card module-anchor">
+    <h2 class="card-title">三、材料性能可视化对比</h2>
+    <div class="section-title">3.1 正极材料性能雷达图</div>
+    <p class="note-text">评分为工程化相对评价，满分100。容量、电压、循环、安全、倍率分值越高代表该项表现越好；成本优势分值越高代表成本优势越明显。可勾选一个或多个材料进行同图对比。</p>
+    <div id="positiveRadarControls" class="radar-control"></div>
+    <div class="radar-actions"><button class="btn-secondary" type="button" onclick="selectAllRadar('positive')">全选正极</button><button class="btn-secondary" type="button" onclick="clearRadar('positive')">清空正极</button></div>
+    <div class="chart-wrap"><canvas id="radarPositive"></canvas></div>
+
+    <div class="section-title">3.2 负极材料性能雷达图</div>
+    <p class="note-text">负极雷达图综合容量、嵌锂电位优势、循环、成本、安全和倍率性能。嵌锂电位优势分越高通常代表有利于提高全电池电压，但快充安全性还需结合析锂风险判断。</p>
+    <div id="negativeRadarControls" class="radar-control"></div>
+    <div class="radar-actions"><button class="btn-secondary" type="button" onclick="selectAllRadar('negative')">全选负极</button><button class="btn-secondary" type="button" onclick="clearRadar('negative')">清空负极</button></div>
+    <div class="chart-wrap"><canvas id="radarNegative"></canvas></div>
+
+    <div class="section-title">3.3 Ragone 能量-功率性能图</div>
+    <p class="note-text">Ragone 图用于体现材料或电池体系在能量密度与功率密度之间的权衡关系。图中包含表格中的全部正负极材料，自定义材料也会同步加入。</p>
+    <div class="chart-wrap wide-chart"><canvas id="ragoneChart"></canvas></div>
+  </section>
+
+  <section id="calc" class="card module-anchor">
+    <h2 class="card-title">四、基础性能计算器</h2>
+    <div class="section-title">4.1 理论比容量计算器</div>
+    <div class="form-row">
+      <div class="form-item"><label>材料一键填充</label><select id="matSelect"><option value="">-- 选择材料 --</option></select></div>
+      <div class="form-item"><label>单位</label><select id="unitSwitch"><option value="mAhg">mAh/g</option><option value="Ahkg">Ah/kg</option></select></div>
+    </div>
+    <div class="form-row"><div class="form-item"><label>电子转移数 z</label><input type="number" id="zInput" value="1" step="0.01"></div><div class="form-item"><label>摩尔质量 M (g/mol)</label><input type="number" id="mInput" step="0.01"></div></div>
+    <div class="form-row"><button class="btn-primary" id="calcBtn">计算</button><button class="btn-secondary" id="copyResultBtn">复制结果</button><button class="btn-secondary" id="resetCalcBtn">清空</button></div>
+    <div class="tip-text" id="calcTip"></div><div class="result-box"><p>理论比容量：<span class="result-value" id="calcResult">--</span></p></div>
+    <div class="analysis-text"><b>理论/实际偏差分析：</b><br>理论比容量表示理想反应上限，未考虑副反应、SEI膜形成、极化、活性锂损失、结构不可逆变化和极片非活性组分，因此实际可逆容量通常低于理论值。</div>
+
+    <div class="divider"></div>
+    <div class="section-title">4.2 质量/体积能量密度计算器</div>
+    <div class="formula-block">质量能量密度：E<sub>m</sub> = U × C &nbsp; (Wh/kg)<br>体积能量密度：E<sub>v</sub> = E<sub>m</sub> × ρ &nbsp; (Wh/L)</div>
+    <p class="desc-text">说明：当比容量单位为 <span class="math">mAh/g</span> 时，数值上等于 <span class="math">Ah/kg</span>，因此 <span class="math">U × C</span> 可直接得到 <span class="math">Wh/kg</span>。压实密度 <span class="math">ρ</span> 的单位为 <span class="math">g/cm³</span>，数值上等于 <span class="math">kg/L</span>。</p>
+    <div class="form-row"><div class="form-item"><label>比容量 C (mAh/g)</label><input type="number" id="capInput" step="0.1"></div><div class="form-item"><label>平均工作电压 U (V)</label><input type="number" id="voltInput" step="0.01"></div><div class="form-item"><label>材料压实密度 ρ (g/cm³)</label><input type="number" id="densityInput" step="0.01" placeholder="体积计算用，可不填"></div></div>
+    <div class="form-row"><button class="btn-primary" id="energyCalcBtn">计算能量密度</button><button class="btn-secondary" id="copyEnergyBtn">复制结果</button><button class="btn-secondary" id="resetEnergyBtn">清空</button></div>
+    <div class="result-box"><p>质量能量密度：<span class="result-value" id="eMass">--</span> Wh/kg</p><p>体积能量密度：<span class="result-value" id="eVol">--</span> Wh/L</p></div>
+
+    <div class="divider"></div>
+    <div class="section-title">4.3 质量/体积功率密度计算器</div>
+    <div class="formula-block">质量功率密度：P<sub>m</sub> = P / m &nbsp; (W/kg)<br>体积功率密度：P<sub>v</sub> = P / V &nbsp; (W/L)</div>
+    <div class="form-row"><div class="form-item"><label>放电/输出功率 P (W)</label><input type="number" id="outPower" step="0.1"></div><div class="form-item"><label>电池总质量 m (kg)</label><input type="number" id="batteryMass" step="0.01"></div><div class="form-item"><label>电池总体积 V (L，可选)</label><input type="number" id="batteryVolume" step="0.01"></div></div>
+    <div class="form-row"><button class="btn-primary" id="powerCalcBtn">计算功率密度</button><button class="btn-secondary" id="copyPowerBtn">复制结果</button><button class="btn-secondary" id="resetPowerBtn">清空</button></div>
+    <div class="result-box"><p>质量功率密度：<span class="result-value" id="pMass">--</span> W/kg</p><p>体积功率密度：<span class="result-value" id="pVol">--</span> W/L</p></div>
+
+    <div class="divider"></div>
+    <div class="section-title">4.4 N/P 负正极容量配比计算器</div>
+    <p class="desc-text"><b>N/P = 负极总容量 / 正极总容量</b>。石墨体系常把 N/P 设计为略大于 1，以降低析锂风险；过高会牺牲能量密度。</p>
+    <div class="form-row"><div class="form-item"><label>正极质量(g)</label><input type="number" id="posMass"></div><div class="form-item"><label>正极比容量(mAh/g)</label><input type="number" id="posCap"></div><div class="form-item"><label>负极质量(g)</label><input type="number" id="negMass"></div><div class="form-item"><label>负极比容量(mAh/g)</label><input type="number" id="negCap"></div></div>
+    <div class="form-row"><button class="btn-primary" id="npCalcBtn">计算N/P</button><button class="btn-secondary" id="copyNpBtn">复制结果</button><button class="btn-secondary" id="resetNpBtn">清空</button></div>
+    <div class="result-box"><p>正极总容量：<span id="posTotal">--</span> mAh</p><p>负极总容量：<span id="negTotal">--</span> mAh</p><p>N/P配比：<span class="result-value" id="npResult">--</span></p><p id="npAdvice"></p></div>
+  </section>
+
+  <section id="recommend" class="card module-anchor">
+    <h2 class="card-title">五、材料体系一键匹配推荐</h2>
+    <p class="desc-text">选择应用场景后，系统会按照能量密度、功率、安全、循环寿命和成本侧重点，给出推荐正负极材料体系及设计理由。</p>
+    <div class="split-grid">
+      <div class="mini-card">
+        <h3>应用场景选择</h3>
+        <div class="form-row">
+          <div class="form-item"><label>目标应用场景</label><select id="scenarioSelect">
+            <option value="storage">储能电站 / 长循环安全</option>
+            <option value="economyEV">经济型动力电池</option>
+            <option value="longRangeEV">高续航动力电池</option>
+            <option value="consumer">数码消费电池</option>
+            <option value="fastCharge">快充 / 高功率电池</option>
+            <option value="lowTempSafe">低温 / 高安全特殊场景</option>
+          </select></div>
+        </div>
+        <div class="form-row"><button class="btn-primary" id="recommendBtn">生成推荐</button><button class="btn-secondary" id="copyRecommendBtn">复制推荐</button></div>
+      </div>
+      <div class="recommend-result" id="recommendResult"></div>
+    </div>
+  </section>
+
+  <section id="cell-estimator" class="card module-anchor">
+    <h2 class="card-title">六、正负极组合完整电池性能估算</h2>
+    <p class="desc-text">该模块把正极与负极组合起来，估算正极容量、负极容量、N/P 配比、限制容量、理论能量和质量能量密度，更贴近实际电池设计流程。</p>
+    <div class="split-grid">
+      <div class="mini-card">
+        <h3>组合参数输入</h3>
+        <div class="form-row">
+          <div class="form-item"><label>正极材料</label><select id="cellPositiveSelect"></select></div>
+          <div class="form-item"><label>负极材料</label><select id="cellNegativeSelect"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-item"><label>正极活性材料质量 (g)</label><input type="number" id="cellPosMass" value="5" step="0.01"></div>
+          <div class="form-item"><label>负极活性材料质量 (g)</label><input type="number" id="cellNegMass" value="2.5" step="0.01"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-item"><label>电池总质量 (kg)</label><input type="number" id="cellTotalMass" value="0.05" step="0.001"></div>
+          <div class="form-item"><label>平均工作电压 (V，可自动估算)</label><input type="number" id="cellVoltage" step="0.01" placeholder="留空则按正极电压-负极电位"></div>
+        </div>
+        <div class="form-row"><button class="btn-primary" id="cellEstimateBtn">估算全电池性能</button><button class="btn-secondary" id="copyCellBtn">复制结果</button><button class="btn-secondary" id="resetCellBtn">恢复默认</button></div>
+      </div>
+      <div class="mini-card">
+        <h3>估算结果</h3>
+        <div class="result-grid">
+          <div class="result-item"><b>正极总容量</b><span id="cellPosTotal">--</span><small> mAh</small></div>
+          <div class="result-item"><b>负极总容量</b><span id="cellNegTotal">--</span><small> mAh</small></div>
+          <div class="result-item"><b>N/P 配比</b><span id="cellNP">--</span></div>
+          <div class="result-item"><b>限制容量</b><span id="cellLimitCap">--</span><small> mAh</small></div>
+          <div class="result-item"><b>理论能量</b><span id="cellEnergy">--</span><small> Wh</small></div>
+          <div class="result-item"><b>质量能量密度</b><span id="cellEnergyDensity">--</span><small> Wh/kg</small></div>
+        </div>
+        <div class="analysis-text" id="cellAdvice">点击“估算全电池性能”后显示分析。</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="system-compare" class="card module-anchor">
+    <h2 class="card-title">七、不同电池体系性能对比分析</h2>
+    <p class="desc-text">该模块将常见正负极组合按照应用场景进行对比，帮助理解不同材料体系在能量密度、功率、安全、循环和成本之间的取舍。</p>
+    <div class="three-grid" id="systemCards"></div>
+    <div class="section-title">综合评分对比图</div>
+    <div class="chart-wrap"><canvas id="systemCompareChart"></canvas></div>
+    <div class="table-wrap" style="margin-top:16px"><table id="systemCompareTable">
+      <thead><tr><th>电池体系</th><th>能量密度</th><th>功率性能</th><th>安全性</th><th>循环寿命</th><th>成本</th><th>综合评价</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section id="design" class="card module-anchor">
+    <h2 class="card-title">八、电池性能匹配设计原则</h2>
+    <div class="indicator-grid">
+      <div class="mini-card"><h3>1. 电压匹配原则</h3><p>正极电位应高于负极电位，全电池平均工作电压近似等于正极平均电压减去负极平均嵌锂电位。</p></div>
+      <div class="mini-card"><h3>2. 容量匹配原则</h3><p>负极容量通常应略大于正极容量，降低析锂风险；但 N/P 过高会浪费负极材料并降低能量密度。</p></div>
+      <div class="mini-card"><h3>3. 能量与功率平衡</h3><p>高能量密度材料不一定具有高功率性能，快充电池需关注倍率性能、内阻和热管理。</p></div>
+      <div class="mini-card"><h3>4. 安全与成本平衡</h3><p>高镍三元体系能量密度较高，但安全和制造要求更高；LFP 安全、长寿命、成本低，适合储能和经济型动力电池。</p></div>
+    </div>
+    <div class="info-text"><b>参数说明：</b>本网站中的材料参数和评分参考的是常用典型值，用于体现材料性能差异和设计逻辑。实际工程设计还需结合活性物质利用率、极片配方、压实密度、电解液、隔膜、集流体、封装结构、热管理和测试条件进行修正。</div>
+  </section>
+
+  <footer>© 锂离子电池性能指标计算与分析平台 | 课程实践网页</footer>
+</div>
+
+<script>
+if (window.Chart) { Chart.defaults.font.family = "Times New Roman, Microsoft YaHei, serif"; }
+const FARADAY = 96485;
+const colorPalette = ['#2563eb','#16a34a','#0891b2','#7c3aed','#dc2626','#f97316','#64748b','#22c55e','#14b8a6','#0ea5e9','#f59e0b','#8b5cf6','#ec4899','#0f766e'];
+
+let baseMaterials = {
+  positive: [
+    {id:'lfp', name:'LFP 磷酸铁锂', tag:'高安全', cap:170, voltage:3.2, density:2.3, molar:157.76, z:1, pros:'安全性高、循环寿命长、成本低', cons:'电压和能量密度偏低', scenario:'储能、公交、经济型动力电池', radar:[62,68,96,95,98,78], ragone:{x:350,y:155}, color:'#2563eb'},
+    {id:'ncm111', name:'NCM111', tag:'均衡型', cap:278, voltage:3.6, density:2.4, molar:96.46, z:1, pros:'镍钴锰比例均衡、综合性能稳定', cons:'能量密度低于高镍体系', scenario:'早期动力电池、通用电池', radar:[80,78,78,68,68,72], ragone:{x:260,y:190}, color:'#16a34a'},
+    {id:'ncm523', name:'NCM523', tag:'均衡动力', cap:275, voltage:3.65, density:2.45, molar:96.8, z:1, pros:'容量、成本、安全较均衡', cons:'高能量密度不足', scenario:'动力电池、消费电池', radar:[82,80,74,66,64,76], ragone:{x:280,y:210}, color:'#0891b2'},
+    {id:'ncm622', name:'NCM622', tag:'高能量', cap:276, voltage:3.7, density:2.55, molar:97.0, z:1, pros:'能量密度较高、综合性能较好', cons:'热稳定性低于LFP', scenario:'新能源汽车', radar:[86,84,70,60,58,78], ragone:{x:300,y:220}, color:'#7c3aed'},
+    {id:'ncm811', name:'NCM811', tag:'高镍高容量', cap:275, voltage:3.8, density:2.6, molar:97.2, z:1, pros:'高容量、高能量密度', cons:'热稳定性和制备要求高', scenario:'高续航动力电池', radar:[92,88,60,50,48,82], ragone:{x:260,y:255}, color:'#dc2626'},
+    {id:'lco', name:'LCO 钴酸锂', tag:'数码型', cap:274, voltage:3.9, density:4.0, molar:97.87, z:1, pros:'压实密度高、电压高、工艺成熟', cons:'成本高、安全性和循环寿命受限', scenario:'手机、笔记本等数码电池', radar:[84,92,65,35,45,70], ragone:{x:220,y:230}, color:'#f97316'},
+    {id:'lmo', name:'LMO 锰酸锂', tag:'倍率型', cap:148, voltage:4.0, density:2.9, molar:180.81, z:1, pros:'倍率性能好、成本低、安全性较好', cons:'高温循环和容量偏低', scenario:'倍率型电池、混合体系', radar:[52,94,58,88,76,88], ragone:{x:520,y:120}, color:'#64748b'}
+  ],
+  negative: [
+    {id:'artificial_graphite', name:'人造石墨', tag:'成熟主流', cap:372, voltage:0.1, density:1.65, molar:72.07, z:1, pros:'循环稳定、一致性好、产业成熟', cons:'快充能力受限、低温性能一般', scenario:'动力电池主流负极', radar:[72,96,92,88,86,72], ragone:{x:420,y:180}, color:'#22c55e'},
+    {id:'natural_graphite', name:'天然石墨', tag:'低成本', cap:372, voltage:0.1, density:1.55, molar:72.07, z:1, pros:'成本低、容量较高', cons:'膨胀和循环稳定性略弱', scenario:'消费电子、低成本电池', radar:[72,96,82,95,80,68], ragone:{x:360,y:175}, color:'#14b8a6'},
+    {id:'hard_carbon', name:'硬碳', tag:'低温潜力', cap:300, voltage:0.15, density:1.2, molar:100, z:1, pros:'低温性能较好、结构稳定', cons:'首次效率较低', scenario:'低温/快充方向、钠电负极参考', radar:[58,90,78,62,78,80], ragone:{x:520,y:150}, color:'#0ea5e9'},
+    {id:'silicon_carbon', name:'硅碳负极', tag:'高容量', cap:850, voltage:0.2, density:1.6, molar:68.50, z:1, pros:'容量显著提高，有利于提升能量密度', cons:'体积膨胀、循环衰减、工艺复杂', scenario:'高能量密度电池', radar:[96,88,55,45,58,62], ragone:{x:300,y:285}, color:'#f59e0b'},
+    {id:'lto', name:'LTO 钛酸锂', tag:'快充长寿命', cap:175, voltage:1.55, density:2.3, molar:153.75, z:1, pros:'安全性极高、循环寿命长、倍率好', cons:'电位高导致全电池能量密度低', scenario:'快充、低温、高安全场景', radar:[42,45,100,45,100,96], ragone:{x:900,y:90}, color:'#8b5cf6'}
+  ]
+};
+let customMaterials = {positive: [], negative: []};
+let positiveRadarChart = null;
+let negativeRadarChart = null;
+let ragoneChart = null;
+let systemCompareChart = null;
+
+const recommendations = {
+  storage: {title:'储能电站 / 长循环安全', positive:'LFP 磷酸铁锂', negative:'人造石墨', focus:'安全性、循环寿命、成本', reason:'LFP 热稳定性好、循环寿命长且成本低；石墨负极成熟稳定，适合长时间运行和大规模储能。', risk:'能量密度不如高镍三元体系，但储能场景更重视安全与寿命。'},
+  economyEV: {title:'经济型动力电池', positive:'LFP 磷酸铁锂', negative:'人造石墨', focus:'成本、安全、寿命', reason:'该体系成本低、热安全性好、循环寿命较长，适合经济型乘用车、商用车和安全优先的动力场景。', risk:'低温性能和高续航表现需要通过热管理和结构设计弥补。'},
+  longRangeEV: {title:'高续航动力电池', positive:'NCM811', negative:'硅碳负极', focus:'高容量、高电压、高能量密度', reason:'高镍三元正极容量和电压较高，硅碳负极可提高负极容量，有利于提升整车续航。', risk:'热稳定性、循环衰减和体积膨胀风险较高，需要更严格的BMS和热管理。'},
+  consumer: {title:'数码消费电池', positive:'LCO 钴酸锂', negative:'天然石墨', focus:'高体积能量密度、成熟工艺', reason:'LCO 压实密度高、电压平台高，适合手机和笔记本等空间受限设备；天然石墨成本较低、容量较高。', risk:'安全性和循环寿命不适合大容量动力场景。'},
+  fastCharge: {title:'快充 / 高功率电池', positive:'LMO 锰酸锂 或 LFP 磷酸铁锂', negative:'LTO 钛酸锂', focus:'倍率性能、安全性、寿命', reason:'LTO 负极嵌锂电位高，析锂风险小，倍率和循环寿命突出；配合倍率型正极适合快充工况。', risk:'全电池电压和能量密度较低，成本也相对较高。'},
+  lowTempSafe: {title:'低温 / 高安全特殊场景', positive:'LFP 磷酸铁锂', negative:'LTO 钛酸锂', focus:'安全、低温、长寿命', reason:'LTO 负极安全性和低温倍率表现突出，LFP 正极热稳定性好，适合高安全要求场景。', risk:'能量密度偏低，更多用于专用车辆、低温装备或高安全储能。'}
+};
+
+const systemData = [
+  {name:'LFP / 石墨', energy:68, power:72, safety:95, cycle:96, cost:92, summary:'安全、寿命和成本优势明显，适合储能和经济型动力电池。'},
+  {name:'NCM622 / 石墨', energy:82, power:76, safety:64, cycle:72, cost:62, summary:'综合性能均衡，适合常规动力电池。'},
+  {name:'NCM811 / 硅碳', energy:95, power:70, safety:52, cycle:58, cost:45, summary:'能量密度高，适合高续航，但安全和循环要求更高。'},
+  {name:'LCO / 石墨', energy:84, power:66, safety:50, cycle:62, cost:40, summary:'体积能量密度较好，适合消费电子。'},
+  {name:'LMO / LTO', energy:45, power:94, safety:90, cycle:95, cost:55, summary:'功率和寿命突出，适合快充与特殊工况。'},
+  {name:'LFP / LTO', energy:42, power:90, safety:98, cycle:100, cost:58, summary:'极高安全和长寿命，但能量密度较低。'}
+];
+
+function allMaterials(type){ return [...baseMaterials[type], ...customMaterials[type]]; }
+function storageKey(){ return 'batteryCustomMaterials_v2'; }
+function safeNum(v, fallback=0){ const n = parseFloat(v); return Number.isFinite(n) ? n : fallback; }
+function clampScore(v){ return Math.max(0, Math.min(100, safeNum(v,70))); }
+function materialTagClass(tag){ if(/安全|寿命|成熟/.test(tag)) return 'green'; if(/能量|高容量|高镍/.test(tag)) return 'red'; if(/快充|倍率/.test(tag)) return 'purple'; if(/数码|低成本/.test(tag)) return 'orange'; return 'slate'; }
+function fmt(v, digits=2){ return Number.isFinite(v) ? v.toFixed(digits) : '--'; }
+
+function resizeCharts(){
+  [positiveRadarChart, negativeRadarChart, ragoneChart, systemCompareChart].forEach(chart => {
+    if(chart && typeof chart.resize === 'function') chart.resize();
+  });
+}
+function showNavigationPage(){
+  document.body.classList.remove('cover-active','site-active');
+  document.body.classList.add('nav-active');
+  const cover = document.getElementById('cover');
+  if(cover) cover.classList.add('cover-hidden');
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+function openSiteSection(targetId){
+  document.body.classList.remove('cover-active','nav-active');
+  document.body.classList.add('site-active');
+  const cover = document.getElementById('cover');
+  if(cover) cover.classList.add('cover-hidden');
+  setTimeout(() => {
+    resizeCharts();
+    const target = document.querySelector(targetId);
+    if(target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const enterBtn = document.getElementById('enterPlatformBtn');
+  if(enterBtn){
+    enterBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      showNavigationPage();
+    });
+  }
+
+  const memberBtn = document.getElementById('memberBtn');
+  const memberModal = document.getElementById('memberModal');
+  const memberCloseBtn = document.getElementById('memberCloseBtn');
+  function closeMemberModal(){
+    if(memberModal){
+      memberModal.classList.remove('show');
+      memberModal.setAttribute('aria-hidden','true');
+    }
+  }
+  if(memberBtn && memberModal){
+    memberBtn.addEventListener('click', () => {
+      memberModal.classList.add('show');
+      memberModal.setAttribute('aria-hidden','false');
+    });
+  }
+  if(memberCloseBtn){
+    memberCloseBtn.addEventListener('click', closeMemberModal);
+  }
+  if(memberModal){
+    memberModal.addEventListener('click', (event) => {
+      if(event.target === memberModal) closeMemberModal();
+    });
+  }
+
+  const memberCards = document.querySelectorAll('.member-card[data-class]');
+  const memberClassBox = document.getElementById('memberClassBox');
+  memberCards.forEach(card => {
+    card.addEventListener('click', () => {
+      memberCards.forEach(item => item.classList.remove('active'));
+      card.classList.add('active');
+      const name = card.textContent.trim();
+      const className = card.dataset.class;
+      if(memberClassBox){
+        memberClassBox.textContent = `${name}：${className}`;
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if(event.key === 'Escape') closeMemberModal();
+  });
+  document.querySelectorAll('#navigationPage a[href^="#"]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      openSiteSection(link.getAttribute('href'));
+    });
+  });
+  document.querySelectorAll('#mainSite a[href^="#"]').forEach(link => {
+    link.addEventListener('click', event => {
+      const href = link.getAttribute('href');
+      event.preventDefault();
+      if(href === '#workflow') showNavigationPage();
+      else openSiteSection(href);
+    });
+  });
+});
+
+window.addEventListener('load', () => {
+  loadCustomMaterials();
+  renderAll();
+  bindEvents();
+  calcCellEstimate();
+  generateRecommendation();
+});
+
+function loadCustomMaterials(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(storageKey()) || '{}');
+    customMaterials.positive = Array.isArray(saved.positive) ? saved.positive : [];
+    customMaterials.negative = Array.isArray(saved.negative) ? saved.negative : [];
+  } catch(e){ customMaterials = {positive:[], negative:[]}; }
+}
+function saveCustomMaterials(){ localStorage.setItem(storageKey(), JSON.stringify(customMaterials)); }
+
+function renderAll(){
+  renderMaterialTables();
+  renderMaterialSelects();
+  renderRadarControls();
+  renderCharts();
+  renderSystemCompare();
+}
+
+function renderMaterialTables(){
+  const posBody = document.querySelector('#positiveTable tbody');
+  const negBody = document.querySelector('#negativeTable tbody');
+  posBody.innerHTML = allMaterials('positive').map(m => materialRow(m, 'positive')).join('');
+  negBody.innerHTML = allMaterials('negative').map(m => materialRow(m, 'negative')).join('');
+}
+function materialRow(m, type){
+  const voltageLabel = type === 'negative' ? fmt(m.voltage,2) : fmt(m.voltage,2);
+  return `<tr><td><b>${m.name}</b></td><td>${m.cap}</td><td>${voltageLabel}</td><td>${m.density || '--'}</td><td>${m.pros || '--'}</td><td>${m.cons || '--'}</td><td>${m.scenario || '--'}</td></tr>`;
+}
+
+function renderMaterialSelects(){
+  const matSelect = document.getElementById('matSelect');
+  const posSelect = document.getElementById('cellPositiveSelect');
+  const negSelect = document.getElementById('cellNegativeSelect');
+  const capacityOptions = [...allMaterials('positive'), ...allMaterials('negative')].map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  matSelect.innerHTML = `<option value="">-- 选择材料 --</option>${capacityOptions}`;
+  posSelect.innerHTML = allMaterials('positive').map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  negSelect.innerHTML = allMaterials('negative').map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  if(!posSelect.value) posSelect.value = 'lfp';
+  if(!negSelect.value) negSelect.value = 'artificial_graphite';
+}
+
+function buildRadarControls(type){
+  const box = document.getElementById(type === 'positive' ? 'positiveRadarControls' : 'negativeRadarControls');
+  const defaultSelected = type === 'positive' ? ['LFP 磷酸铁锂','NCM622','LCO 钴酸锂'] : ['人造石墨','硅碳负极','LTO 钛酸锂'];
+  box.innerHTML = allMaterials(type).map(m => {
+    const checked = defaultSelected.includes(m.name) ? 'checked' : '';
+    return `<label class="radar-chip"><input type="checkbox" name="${type}RadarMaterial" value="${m.id}" ${checked}>${m.name}</label>`;
+  }).join('');
+  box.querySelectorAll('input').forEach(input => input.addEventListener('change', () => updateRadar(type)));
+}
+function renderRadarControls(){ buildRadarControls('positive'); buildRadarControls('negative'); }
+function getSelectedRadarMaterials(type){ return Array.from(document.querySelectorAll(`input[name="${type}RadarMaterial"]:checked`)).map(i => i.value); }
+function hexToRgba(hex, alpha){ const h=hex.replace('#',''); const r=parseInt(h.substring(0,2),16), g=parseInt(h.substring(2,4),16), b=parseInt(h.substring(4,6),16); return `rgba(${r},${g},${b},${alpha})`; }
+function makeRadarDatasets(type){
+  const selected = getSelectedRadarMaterials(type);
+  return allMaterials(type).filter(m => selected.includes(m.id)).map(m => ({
+    label:m.name, data:m.radar, borderColor:m.color, backgroundColor:hexToRgba(m.color,.12), pointBackgroundColor:m.color, pointBorderColor:'#fff', borderWidth:2
+  }));
+}
+function createRadarChart(type){
+  const canvasId = type === 'positive' ? 'radarPositive' : 'radarNegative';
+  const labels = type === 'positive' ? ['容量','电压','循环','成本优势','安全','倍率'] : ['容量','嵌锂电位优势','循环','成本优势','安全','倍率'];
+  const ctx = document.getElementById(canvasId);
+  const chart = new Chart(ctx,{type:'radar',data:{labels, datasets:makeRadarDatasets(type)},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}：${ctx.formattedValue} 分`}}},scales:{r:{min:0,max:100,ticks:{stepSize:20}}}}});
+  if(type === 'positive') positiveRadarChart = chart; else negativeRadarChart = chart;
+}
+function updateRadar(type){ const chart = type === 'positive' ? positiveRadarChart : negativeRadarChart; if(!chart) return; chart.data.datasets = makeRadarDatasets(type); chart.update(); }
+function selectAllRadar(type){ document.querySelectorAll(`input[name="${type}RadarMaterial"]`).forEach(i => i.checked = true); updateRadar(type); }
+function clearRadar(type){ document.querySelectorAll(`input[name="${type}RadarMaterial"]`).forEach(i => i.checked = false); updateRadar(type); }
+
+function renderCharts(){
+  if(positiveRadarChart) positiveRadarChart.destroy();
+  if(negativeRadarChart) negativeRadarChart.destroy();
+  if(ragoneChart) ragoneChart.destroy();
+  if(systemCompareChart) systemCompareChart.destroy();
+  createRadarChart('positive');
+  createRadarChart('negative');
+  createRagoneChart();
+  createSystemCompareChart();
+}
+function createRagoneChart(){
+  const datasets = [...allMaterials('positive'), ...allMaterials('negative')].map(m => ({label:m.name, data:[m.ragone || {x:300,y:150}], pointRadius:7, pointHoverRadius:10, backgroundColor:m.color}));
+  ragoneChart = new Chart(document.getElementById('ragoneChart'),{type:'scatter',data:{datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: 功率 ${ctx.parsed.x} W/kg，能量 ${ctx.parsed.y} Wh/kg`}}},scales:{x:{type:'logarithmic',title:{display:true,text:'功率密度 W/kg'}},y:{title:{display:true,text:'能量密度 Wh/kg'}}}}});
+}
+
+function bindEvents(){
+  document.getElementById('matSelect').addEventListener('change', fillMaterialForCapacity);
+  document.getElementById('calcBtn').addEventListener('click', calcCapacity);
+  document.getElementById('copyResultBtn').addEventListener('click', copyRes);
+  document.getElementById('resetCalcBtn').addEventListener('click', resetCalc);
+  document.getElementById('energyCalcBtn').addEventListener('click', calcEnergy);
+  document.getElementById('copyEnergyBtn').addEventListener('click', copyEnergy);
+  document.getElementById('resetEnergyBtn').addEventListener('click', resetEnergy);
+  document.getElementById('powerCalcBtn').addEventListener('click', calcPower);
+  document.getElementById('copyPowerBtn').addEventListener('click', copyPower);
+  document.getElementById('resetPowerBtn').addEventListener('click', resetPower);
+  document.getElementById('npCalcBtn').addEventListener('click', calcNP);
+  document.getElementById('copyNpBtn').addEventListener('click', copyNP);
+  document.getElementById('resetNpBtn').addEventListener('click', resetNP);
+  document.getElementById('addMaterialBtn').addEventListener('click', addCustomMaterial);
+  document.getElementById('clearMaterialFormBtn').addEventListener('click', clearMaterialForm);
+  document.getElementById('resetCustomMaterialsBtn').addEventListener('click', resetCustomMaterials);
+  document.getElementById('recommendBtn').addEventListener('click', generateRecommendation);
+  document.getElementById('copyRecommendBtn').addEventListener('click', copyRecommend);
+  document.getElementById('cellEstimateBtn').addEventListener('click', calcCellEstimate);
+  document.getElementById('copyCellBtn').addEventListener('click', copyCellResult);
+  document.getElementById('resetCellBtn').addEventListener('click', resetCellEstimator);
+  ['cellPositiveSelect','cellNegativeSelect'].forEach(id => document.getElementById(id).addEventListener('change', autoFillCellVoltage));
+}
+function findMaterialById(id){ return [...allMaterials('positive'), ...allMaterials('negative')].find(m => m.id === id); }
+function fillMaterialForCapacity(){ const m = findMaterialById(this.value); if(!m) return; document.getElementById('zInput').value = m.z || 1; document.getElementById('mInput').value = m.molar || ''; }
+function calcCapacity(){ const z=safeNum(document.getElementById('zInput').value), M=safeNum(document.getElementById('mInput').value), unit=document.getElementById('unitSwitch').value; if(z<=0||M<=0){document.getElementById('calcTip').innerText='输入必须大于0';return;} const c=z*FARADAY/(3.6*M); document.getElementById('calcResult').innerText = unit==='mAhg' ? c.toFixed(2)+' mAh/g' : c.toFixed(2)+' Ah/kg'; document.getElementById('calcTip').innerText=''; }
+function calcEnergy(){ const c=safeNum(document.getElementById('capInput').value), u=safeNum(document.getElementById('voltInput').value), d=safeNum(document.getElementById('densityInput').value); if(c<=0||u<=0){document.getElementById('eMass').innerText='输入错误'; document.getElementById('eVol').innerText='--'; return;} const em=c*u; document.getElementById('eMass').innerText=em.toFixed(2); document.getElementById('eVol').innerText=d>0 ? (em*d).toFixed(2) : '未输入密度'; }
+function calcPower(){ const p=safeNum(document.getElementById('outPower').value), m=safeNum(document.getElementById('batteryMass').value), v=safeNum(document.getElementById('batteryVolume').value); if(p<=0||m<=0){document.getElementById('pMass').innerText='输入错误'; document.getElementById('pVol').innerText='--'; return;} document.getElementById('pMass').innerText=(p/m).toFixed(2); document.getElementById('pVol').innerText=v>0 ? (p/v).toFixed(2) : '未输入体积'; }
+function calcNP(){ const pm=safeNum(document.getElementById('posMass').value), pc=safeNum(document.getElementById('posCap').value), nm=safeNum(document.getElementById('negMass').value), nc=safeNum(document.getElementById('negCap').value); if([pm,pc,nm,nc].some(x=>x<=0)){document.getElementById('npAdvice').innerText='请输入有效参数'; return;} const pt=pm*pc, nt=nm*nc, np=nt/pt; document.getElementById('posTotal').innerText=pt.toFixed(2); document.getElementById('negTotal').innerText=nt.toFixed(2); document.getElementById('npResult').innerText=np.toFixed(3); document.getElementById('npAdvice').innerText = np>=1.1&&np<=1.2 ? '✅ 配比合理' : np<1.1 ? '❌ 负极容量偏低，存在析锂风险' : '⚠️ 配比偏高，会降低能量密度'; }
+
+function estimateCustomRadar(type, cap, voltage, density){
+  const d = Number.isFinite(density) && density > 0 ? density : 2;
+  if(type === 'positive'){
+    const capacityScore = Math.max(35, Math.min(100, cap / 300 * 100));
+    const voltageScore = Math.max(35, Math.min(100, voltage / 4.2 * 100));
+    const energyPotential = Math.max(35, Math.min(100, cap * voltage / 1050 * 100));
+    const densityScore = Math.max(45, Math.min(100, d / 4 * 100));
+    return [Math.round(capacityScore), Math.round(voltageScore), 70, Math.round(densityScore), 70, Math.round(energyPotential * .75)];
+  }
+  const capacityScore = Math.max(35, Math.min(100, cap / 850 * 100));
+  const potentialAdvantage = Math.max(35, Math.min(100, 100 - voltage / 1.6 * 60));
+  const densityScore = Math.max(45, Math.min(100, d / 2.3 * 90));
+  const rateScore = voltage >= 1 ? 90 : 70;
+  return [Math.round(capacityScore), Math.round(potentialAdvantage), 70, Math.round(densityScore), voltage >= 1 ? 95 : 72, rateScore];
+}
+function estimateCustomRagone(type, cap, voltage){
+  if(type === 'positive'){
+    return {x: Math.round(voltage >= 3.8 ? 300 : 380), y: Math.round(Math.max(80, Math.min(280, cap * voltage * 0.25)))};
+  }
+  const power = voltage >= 1 ? 850 : cap >= 650 ? 320 : 420;
+  const energy = Math.round(Math.max(80, Math.min(320, cap * (voltage >= 1 ? 0.5 : 0.48))));
+  return {x: power, y: energy};
+}
+
+function addCustomMaterial(){
+  const type = document.getElementById('customType').value;
+  const name = document.getElementById('customName').value.trim();
+  const cap = safeNum(document.getElementById('customCap').value);
+  const voltage = safeNum(document.getElementById('customVoltage').value);
+  const density = safeNum(document.getElementById('customDensity').value);
+  const tip = document.getElementById('customMaterialTip');
+  if(!name || cap<=0 || voltage<=0){ tip.innerText='请至少填写材料名称、理论比容量和平均电压/电位。'; return; }
+  const exists = [...allMaterials('positive'), ...allMaterials('negative')].some(m => m.name === name);
+  if(exists){ tip.innerText='材料库中已经存在同名材料，请更换名称或删除自定义材料后重试。'; return; }
+  const count = customMaterials.positive.length + customMaterials.negative.length;
+  const material = {
+    id:'custom_'+Date.now(),
+    name,
+    tag:'',
+    cap, voltage, density: density || '--',
+    molar:100, z:1,
+    pros:document.getElementById('customPros').value.trim() || '待补充',
+    cons:document.getElementById('customCons').value.trim() || '待补充',
+    scenario:document.getElementById('customScenario').value.trim() || '待补充',
+    radar:estimateCustomRadar(type, cap, voltage, density),
+    ragone:estimateCustomRagone(type, cap, voltage),
+    color: colorPalette[(baseMaterials.positive.length+baseMaterials.negative.length+count) % colorPalette.length]
+  };
+  customMaterials[type].push(material);
+  saveCustomMaterials();
+  renderAll();
+  clearMaterialForm(false);
+  tip.innerText='✅ 已添加到材料库，并同步更新图表和下拉选项。';
+}
+function clearMaterialForm(clearTip=true){
+  ['customName','customCap','customVoltage','customDensity','customScenario','customPros','customCons'].forEach(id => document.getElementById(id).value='');
+  if(clearTip) document.getElementById('customMaterialTip').innerText='';
+}
+function resetCustomMaterials(){
+  if(!confirm('确定删除所有自定义材料吗？内置材料不会删除。')) return;
+  customMaterials = {positive:[], negative:[]};
+  saveCustomMaterials();
+  renderAll();
+  document.getElementById('customMaterialTip').innerText='已删除自定义材料。';
+}
+
+function generateRecommendation(){
+  const key = document.getElementById('scenarioSelect').value;
+  const r = recommendations[key];
+  const html = `<div class="recommend-card"><h3>${r.title}</h3><p><b>推荐体系：</b><span class="tag green">${r.positive}</span> + <span class="tag purple">${r.negative}</span></p><p><b>设计重点：</b>${r.focus}</p><p><b>推荐理由：</b>${r.reason}</p><p><b>注意问题：</b>${r.risk}</p></div>`;
+  document.getElementById('recommendResult').innerHTML = html;
+}
+function copyRecommend(){ copyText(document.getElementById('recommendResult').innerText || ''); }
+
+function autoFillCellVoltage(){
+  const pos = allMaterials('positive').find(m => m.id === document.getElementById('cellPositiveSelect').value);
+  const neg = allMaterials('negative').find(m => m.id === document.getElementById('cellNegativeSelect').value);
+  if(pos && neg && !document.getElementById('cellVoltage').value){ document.getElementById('cellVoltage').placeholder = (pos.voltage - neg.voltage).toFixed(2); }
+}
+function calcCellEstimate(){
+  const pos = allMaterials('positive').find(m => m.id === document.getElementById('cellPositiveSelect').value) || allMaterials('positive')[0];
+  const neg = allMaterials('negative').find(m => m.id === document.getElementById('cellNegativeSelect').value) || allMaterials('negative')[0];
+  const pm = safeNum(document.getElementById('cellPosMass').value), nm = safeNum(document.getElementById('cellNegMass').value), tm = safeNum(document.getElementById('cellTotalMass').value);
+  let voltage = safeNum(document.getElementById('cellVoltage').value);
+  if(voltage <= 0 && pos && neg) voltage = Math.max(0.1, pos.voltage - neg.voltage);
+  if(!pos || !neg || pm<=0 || nm<=0 || tm<=0 || voltage<=0){ document.getElementById('cellAdvice').innerText='请输入有效的材料、质量和电压参数。'; return; }
+  const posTotal = pm * pos.cap;
+  const negTotal = nm * neg.cap;
+  const np = negTotal / posTotal;
+  const limitCap = Math.min(posTotal, negTotal);
+  const energy = limitCap / 1000 * voltage;
+  const energyDensity = energy / tm;
+  document.getElementById('cellPosTotal').innerText = posTotal.toFixed(2);
+  document.getElementById('cellNegTotal').innerText = negTotal.toFixed(2);
+  document.getElementById('cellNP').innerText = np.toFixed(3);
+  document.getElementById('cellLimitCap').innerText = limitCap.toFixed(2);
+  document.getElementById('cellEnergy').innerText = energy.toFixed(3);
+  document.getElementById('cellEnergyDensity').innerText = energyDensity.toFixed(2);
+  const limiting = posTotal <= negTotal ? '正极限制容量' : '负极限制容量';
+  const npText = np>=1.1&&np<=1.2 ? 'N/P 处于较合理范围。' : np<1.1 ? 'N/P 偏低，负极容量余量不足，存在析锂风险。' : 'N/P 偏高，会牺牲部分能量密度。';
+  document.getElementById('cellAdvice').innerHTML = `<b>组合分析：</b>${pos.name} / ${neg.name} 体系的估算平均电压为 ${voltage.toFixed(2)} V，当前由<b>${limiting}</b>，${npText} 实际电芯能量密度还需扣除隔膜、电解液、集流体、壳体和安全冗余等非活性组分影响。`;
+}
+function resetCellEstimator(){
+  document.getElementById('cellPositiveSelect').value = 'lfp';
+  document.getElementById('cellNegativeSelect').value = 'artificial_graphite';
+  document.getElementById('cellPosMass').value = 5;
+  document.getElementById('cellNegMass').value = 2.5;
+  document.getElementById('cellTotalMass').value = 0.05;
+  document.getElementById('cellVoltage').value = '';
+  calcCellEstimate();
+}
+function copyCellResult(){ copyText(`正极总容量：${document.getElementById('cellPosTotal').innerText} mAh；负极总容量：${document.getElementById('cellNegTotal').innerText} mAh；N/P：${document.getElementById('cellNP').innerText}；限制容量：${document.getElementById('cellLimitCap').innerText} mAh；理论能量：${document.getElementById('cellEnergy').innerText} Wh；质量能量密度：${document.getElementById('cellEnergyDensity').innerText} Wh/kg。`); }
+
+function renderSystemCompare(){
+  const cards = document.getElementById('systemCards');
+  cards.innerHTML = systemData.map(s => {
+    const avg = Math.round((s.energy+s.power+s.safety+s.cycle+s.cost)/5);
+    return `<div class="system-card"><h3>${s.name}</h3><div class="system-tags"><span class="tag red">能量 ${s.energy}</span><span class="tag purple">功率 ${s.power}</span><span class="tag green">安全 ${s.safety}</span></div><p>${s.summary}</p><div class="score-bar"><span style="width:${avg}%"></span></div><p class="small">综合评分：${avg}/100</p></div>`;
+  }).join('');
+  const tbody = document.querySelector('#systemCompareTable tbody');
+  tbody.innerHTML = systemData.map(s => `<tr><td><b>${s.name}</b></td><td>${s.energy}</td><td>${s.power}</td><td>${s.safety}</td><td>${s.cycle}</td><td>${s.cost}</td><td>${s.summary}</td></tr>`).join('');
+}
+function createSystemCompareChart(){
+  systemCompareChart = new Chart(document.getElementById('systemCompareChart'),{type:'bar',data:{labels:systemData.map(s=>s.name),datasets:[{label:'能量密度',data:systemData.map(s=>s.energy),backgroundColor:'rgba(37,99,235,.65)'},{label:'功率性能',data:systemData.map(s=>s.power),backgroundColor:'rgba(6,182,212,.65)'},{label:'安全性',data:systemData.map(s=>s.safety),backgroundColor:'rgba(22,163,74,.65)'},{label:'循环寿命',data:systemData.map(s=>s.cycle),backgroundColor:'rgba(124,58,237,.65)'},{label:'成本优势',data:systemData.map(s=>s.cost),backgroundColor:'rgba(249,115,22,.65)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{min:0,max:100,title:{display:true,text:'相对评分 / 100'}}}}});
+}
+
+function copyText(t){ if(navigator.clipboard){ navigator.clipboard.writeText(t); } }
+function copyRes(){ copyText('理论比容量：'+document.getElementById('calcResult').innerText); }
+function copyEnergy(){ copyText('质量能量密度：'+document.getElementById('eMass').innerText+' Wh/kg；体积能量密度：'+document.getElementById('eVol').innerText+' Wh/L'); }
+function copyPower(){ copyText('质量功率密度：'+document.getElementById('pMass').innerText+' W/kg；体积功率密度：'+document.getElementById('pVol').innerText+' W/L'); }
+function copyNP(){ copyText('正极总容量：'+document.getElementById('posTotal').innerText+' mAh；负极总容量：'+document.getElementById('negTotal').innerText+' mAh；N/P配比：'+document.getElementById('npResult').innerText+'；'+document.getElementById('npAdvice').innerText); }
+function resetCalc(){ document.getElementById('matSelect').value=''; document.getElementById('zInput').value=''; document.getElementById('mInput').value=''; document.getElementById('calcResult').innerText='--'; document.getElementById('calcTip').innerText=''; }
+function resetEnergy(){ ['capInput','voltInput','densityInput'].forEach(id=>document.getElementById(id).value=''); document.getElementById('eMass').innerText='--'; document.getElementById('eVol').innerText='--'; }
+function resetPower(){ ['outPower','batteryMass','batteryVolume'].forEach(id=>document.getElementById(id).value=''); document.getElementById('pMass').innerText='--'; document.getElementById('pVol').innerText='--'; }
+function resetNP(){ ['posMass','posCap','negMass','negCap'].forEach(id=>document.getElementById(id).value=''); document.getElementById('posTotal').innerText='--'; document.getElementById('negTotal').innerText='--'; document.getElementById('npResult').innerText='--'; document.getElementById('npAdvice').innerText=''; }
+</script>
+</body>
+</html>

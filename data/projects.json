@@ -1,0 +1,101 @@
+{
+  "course": {
+    "name": "全电技术 / 储能电池技术",
+    "siteTitle": "全电技术课程 AI 实践成果展示平台",
+    "subtitle": "储能电池技术学生网站作品展 · 按学年归档",
+    "updated": "2026-06-14"
+  },
+  "projects": [
+    {
+      "year": 2026,
+      "group": "group01",
+      "title": "锂离子电池性能指标网站",
+      "members": ["2026年度第一组"],
+      "keywords": ["锂离子电池", "性能指标", "储能电池", "容量", "能量密度"],
+      "description": "围绕锂离子电池容量、电压、能量密度、功率密度等性能指标构建的学生网站作品。",
+      "date": "2026-06-13",
+      "url": "works/2026/group01/锂离子电池性能指标网站.html",
+      "cover": "assets/covers/2026-group01-work01.png",
+      "category": "锂离子电池",
+      "featured": true
+    },
+    {
+      "year": 2026,
+      "group": "group01",
+      "title": "锂离子电池性能指标分析系统",
+      "members": ["2026年度第一组"],
+      "keywords": ["锂离子电池", "性能分析", "正负极材料", "储能材料", "理论计算"],
+      "description": "面向储能材料计算与电池性能分析的学生网站作品，展示核心性能指标、材料参数与应用导向设计原则。",
+      "date": "2026-06-14",
+      "url": "works/2026/group01/锂离子电池性能指标网站（最终版）.html",
+      "cover": "assets/covers/2026-group01-work02.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group02",
+      "title": "锂离子电池性能指标计算与分析平台",
+      "members": ["2026年度第二组"],
+      "keywords": ["锂离子电池", "性能指标", "计算分析", "储能电池"],
+      "description": "围绕锂离子电池性能指标计算、数据分析与结果展示完成的网站开发作品。",
+      "date": "2026-10-30",
+      "url": "works/2026/group02/AI实践作业-锂离子电池性能指标计算网站(1).html",
+      "cover": "assets/covers/2026-group02-work01.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group02",
+      "title": "锂电池正负极材料比容量与比能量计算器",
+      "members": ["2026年度第二组"],
+      "keywords": ["锂电池", "正极材料", "负极材料", "比容量", "比能量"],
+      "description": "面向锂电池正负极材料参数计算的交互式网站，支持比容量与比能量等指标的学习和比较。",
+      "date": "2026-10-30",
+      "url": "works/2026/group02/储能电池技术第二组网站-定稿.html",
+      "cover": "assets/covers/2026-group02-work02.png",
+      "category": "电池材料",
+      "featured": true
+    },
+    {
+      "year": 2026,
+      "group": "group02",
+      "title": "锂离子电池性能分析平台",
+      "members": ["2026年度第二组"],
+      "keywords": ["锂离子电池", "性能分析", "储能电池", "材料参数"],
+      "description": "展示锂离子电池性能指标与储能材料参数的网站开发作品，突出数据组织与分析流程。",
+      "date": "2026-10-30",
+      "url": "works/2026/group02/储能电池网站开发代码.html",
+      "cover": "assets/covers/2026-group02-work03.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group02",
+      "title": "锂离子电池性能指标计算与分析平台（新版）",
+      "members": ["2026年度第二组"],
+      "keywords": ["锂离子电池", "性能指标", "计算分析", "网站开发"],
+      "description": "锂离子电池性能指标计算与分析平台的新版学生作品，采用独立页面呈现计算结果与学习内容。",
+      "date": "2026-10-30",
+      "url": "works/2026/group02/锂离子电池性能指标网站-new.html",
+      "cover": "assets/covers/2026-group02-work04.png",
+      "category": "锂离子电池",
+      "featured": false
+    },
+    {
+      "year": 2026,
+      "group": "group02",
+      "title": "锂离子电池性能指标分析平台 | 电池材料设计与计算工具",
+      "members": ["2026年度第二组"],
+      "keywords": ["锂离子电池", "电池材料", "性能指标", "设计平台", "计算工具"],
+      "description": "面向电池材料设计与性能指标分析的交互式平台，展示材料参数、计算工具和应用导向内容。",
+      "date": "2026-10-30",
+      "url": "works/2026/group02/锂离子电池性能指标设计平台(2).html",
+      "cover": "assets/covers/2026-group02-work05.png",
+      "category": "电池材料",
+      "featured": false
+    }
+  ]
+}
